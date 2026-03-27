@@ -6,7 +6,8 @@ Welcome to my professional portfolio. I'm an **AI Automation Developer & Systems
 
 This portfolio showcases my work across AI automation, systems design, and product development. It includes:
 
-- **Live Portfolio Website** — [pelumi_portfolio.html](./pelumi_portfolio.html)
+- **Live Portfolio Website** — https://pelumioladokun.xyz
+- **Source File (local)** — [index.html](./index.html)
 - **Deployed Products** — Production-ready applications built with AI
 - **Technical Projects** — Real-world solutions and research implementations
 - **Anthropic Certifications** — Formally certified in AI fluency and Claude API development
