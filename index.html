@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-EvmCpI0gKaDsi+71n2pqfZ5+RnW5IHL9u5p5+9DwGtqWJ9+dh/j0jd0V7v4LksV5u+R5F5u5p+9DwGtqWJ9+dh" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <style>
 :root {
   --bg: #0d0d14;
@@ -630,15 +631,15 @@ section {
 
 .cert-logo {
   width: 40px; height: 40px;
-  background: #000;
+  background: var(--teal-dim);
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   font-weight: 900;
-  font-size: 1rem;
-  color: #fff;
+  font-size: 1.2rem;
+  color: var(--teal);
   font-family: var(--font-display);
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(0, 194, 203, 0.25);
 }
 
 .cert-info { flex: 1; }
@@ -1195,7 +1196,7 @@ footer {
 
   <div class="certs-grid">
     <div class="cert-card">
-      <div class="cert-logo">AI</div>
+      <div class="cert-logo"><i class="fas fa-code"></i></div>
       <div class="cert-info">
         <div class="cert-name">Building with the Claude API</div>
         <div class="cert-issuer">Anthropic</div>
@@ -1204,7 +1205,7 @@ footer {
       </div>
     </div>
     <div class="cert-card">
-      <div class="cert-logo">AI</div>
+      <div class="cert-logo"><i class="fas fa-brain"></i></div>
       <div class="cert-info">
         <div class="cert-name">AI Fluency Framework &amp; Foundations</div>
         <div class="cert-issuer">Anthropic</div>
@@ -1213,7 +1214,7 @@ footer {
       </div>
     </div>
     <div class="cert-card">
-      <div class="cert-logo">AI</div>
+      <div class="cert-logo"><i class="fas fa-graduation-cap"></i></div>
       <div class="cert-info">
         <div class="cert-name">Teaching the AI Fluency Framework</div>
         <div class="cert-issuer">Anthropic</div>
@@ -1222,7 +1223,7 @@ footer {
       </div>
     </div>
     <div class="cert-card">
-      <div class="cert-logo">AI</div>
+      <div class="cert-logo"><i class="fas fa-handshake"></i></div>
       <div class="cert-info">
         <div class="cert-name">AI Fluency for Nonprofits</div>
         <div class="cert-issuer">Anthropic</div>
