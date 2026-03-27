@@ -729,7 +729,40 @@ section {
   gap: 4rem;
   margin-top: 3rem;
 }
-.contact-links {
+
+@media (max-width: 900px) {
+  .contact-grid {
+    display: block !important;
+    gap: 1.25rem;
+  }
+  .contact-links, .availability-card {
+    width: min(100%, 680px) !important;
+    max-width: 680px;
+    margin: 0 auto 1rem auto;
+  }
+  .contact-links {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+  .contact-link {
+    width: 100% !important;
+    padding: 0.95rem 0.9rem;
+    border-radius: 12px;
+  }
+  .contact-link::before {
+    width: 1px;
+    height: 10px;
+  }
+  .availability-card {
+    width: 100% !important;
+    padding: 1.3rem 1rem;
+    background: var(--surface_container);
+    border: none;
+    box-shadow: var(--shadow-ambient), 0 0 16px rgba(0, 194, 203, 0.09);
+  }
+  #contact { padding-top: 3.5rem; }
+}.contact-links {
   display: flex;
   flex-direction: column;
   gap: 1rem;
