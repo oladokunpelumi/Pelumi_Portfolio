@@ -11,7 +11,10 @@
 :root {
   --bg: #0d0d14;
   --surface: #13131f;
-  --surface2: #1a1a2e;
+  --surface_container: #1f1f26;
+  --surface_container_high: #2a2931;
+  --surface_container_low: #1b1b22;
+  --surface_container_lowest: #0e0e15;
   --teal: #00c2cb;
   --teal-dim: rgba(0,194,203,0.12);
   --teal-mid: rgba(0,194,203,0.35);
@@ -20,6 +23,7 @@
   --border: rgba(0,194,203,0.18);
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
+  --shadow-ambient: 0 20px 40px rgba(228,225,236,0.06);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -330,6 +334,19 @@ section {
   align-items: start;
 }
 
+.about-text {
+  background: var(--surface);
+  padding: 2rem 2.5rem 2rem 3rem; /* asymmetrical */
+  border-radius: 12px;
+  position: relative;
+}
+.about-text::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
 .about-text p {
   color: var(--gray);
   margin-bottom: 1.2rem;
@@ -339,22 +356,43 @@ section {
 .about-text p strong { color: var(--white); font-weight: 500; }
 
 .about-skills {
+  background: var(--surface_container);
+  padding: 2rem 2.5rem 2rem 3rem; /* asymmetrical */
+  border-radius: 12px;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
+.about-skills::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
 
 .skill-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface_container_high);
   border-radius: 10px;
   padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: border-color 0.2s;
+  transition: box-shadow 0.3s ease;
+  position: relative;
 }
-.skill-item:hover { border-color: var(--teal); }
+.skill-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
+.skill-item:hover {
+  box-shadow: var(--shadow-ambient), 0 0 20px rgba(0,194,203,0.1);
+}
+
 .skill-icon {
   width: 36px; height: 36px;
   background: var(--teal-dim);
@@ -486,8 +524,7 @@ section {
 }
 
 .project-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface_container);
   border-radius: 14px;
   padding: 1.75rem;
   transition: all 0.25s;
@@ -497,14 +534,14 @@ section {
 .project-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--teal), transparent);
-  opacity: 0;
-  transition: opacity 0.25s;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
 }
-.project-card:hover { border-color: var(--teal-mid); transform: translateY(-3px); }
-.project-card:hover::before { opacity: 1; }
+.project-card:hover {
+  box-shadow: var(--shadow-ambient), 0 0 20px rgba(0,194,203,0.1);
+  transform: translateY(-3px);
+}
 
 .project-icon {
   width: 44px; height: 44px;
@@ -553,16 +590,25 @@ section {
 }
 
 .cert-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface_container);
   border-radius: 12px;
   padding: 1.5rem;
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  transition: border-color 0.2s;
+  transition: box-shadow 0.3s ease;
+  position: relative;
 }
-.cert-card:hover { border-color: var(--teal); }
+.cert-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
+.cert-card:hover {
+  box-shadow: var(--shadow-ambient), 0 0 20px rgba(0,194,203,0.1);
+}
 
 .cert-logo {
   width: 40px; height: 40px;
@@ -590,17 +636,26 @@ section {
 
 /* ── BLOG ── */
 .blog-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface_container);
   border-radius: 16px;
   padding: 2.5rem;
   margin-top: 3rem;
   display: flex;
   align-items: center;
   gap: 2rem;
-  transition: border-color 0.2s;
+  transition: box-shadow 0.3s ease;
+  position: relative;
 }
-.blog-card:hover { border-color: var(--teal); }
+.blog-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
+.blog-card:hover {
+  box-shadow: var(--shadow-ambient), 0 0 20px rgba(0,194,203,0.1);
+}
 
 .blog-icon {
   width: 64px; height: 64px;
@@ -669,12 +724,23 @@ section {
   text-decoration: none;
   font-size: 0.95rem;
   padding: 1rem 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface_container);
   border-radius: 10px;
-  transition: all 0.2s;
+  transition: all 0.2s, box-shadow 0.3s ease;
+  position: relative;
 }
-.contact-link:hover { color: var(--teal); border-color: var(--teal); transform: translateX(4px); }
+.contact-link::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 12px;
+  background: var(--teal);
+}
+.contact-link:hover {
+  color: var(--teal);
+  box-shadow: var(--shadow-ambient), 0 0 20px rgba(0,194,203,0.1);
+  transform: translateX(4px);
+}
 .contact-link-icon {
   width: 36px; height: 36px;
   background: var(--teal-dim);
@@ -776,7 +842,9 @@ footer {
   .hero-desc { font-size: 0.95rem; }
   .hero-actions { flex-direction: column; align-items: stretch; }
   .btn-primary, .btn-outline { width: 100%; text-align: center; }
-  .about-grid, .contact-grid, .product-card, .projects-grid, .certs-grid { grid-template-columns: 1fr; }
+  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .about-text, .about-skills { padding: 1.5rem 2rem 1.5rem 2.5rem; }
+  .product-card { grid-template-columns: 1fr; }
   .product-card.reverse { direction: ltr; }
   .hero-stats { flex-wrap: wrap; gap: 1rem; }
   .product-card { padding: 2rem; }
@@ -790,6 +858,7 @@ footer {
   .nav-links { right: 1rem; width: min(92vw, 280px); }
   .product-card { gap: 1.5rem; padding: 1.5rem; }
   .projects-grid, .certs-grid { gap: 1rem; }
+  .about-text, .about-skills { padding: 1.25rem 1.5rem 1.25rem 2rem; }
 }
 
 @media (max-width: 640px) {
@@ -802,6 +871,7 @@ footer {
   .projects-grid, .certs-grid { grid-template-columns: 1fr; }
   .tech-stack, .about-skills { gap: 0.85rem; }
   .contact-grid { gap: 2rem; }
+  .about-text, .about-skills { padding: 1rem 1.25rem 1rem 1.75rem; }
 }
 
 </style>
