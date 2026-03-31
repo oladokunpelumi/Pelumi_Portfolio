@@ -1,0 +1,20 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#111117"/>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <path d="M1124 174L1430 330L1124 486L818 330L1124 174Z" fill="#F5C556"/>
+  <path d="M1124 486V704L818 548V330L1124 486Z" fill="#D86739"/>
+  <path d="M1124 486V704L1430 548V330L1124 486Z" fill="#ED9F3A"/>
+  <path d="M1028 556H1224" stroke="#0D1117" stroke-width="24" stroke-linecap="round"/>
+  <path d="M1126 458V654" stroke="#0D1117" stroke-width="24" stroke-linecap="round"/>
+  <text x="126" y="188" fill="#F8D67F" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="6">MACHINE LEARNING</text>
+  <text x="118" y="350" fill="#F5F7FA" font-family="Syne, Arial, sans-serif" font-size="114" font-weight="700" letter-spacing="-4">House Price</text>
+  <text x="118" y="448" fill="#F5F7FA" font-family="Syne, Arial, sans-serif" font-size="114" font-weight="700" letter-spacing="-4">Classification</text>
+  <text x="126" y="554" fill="#B5BCC7" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="500">Neural-network model for grouping properties into usable price bands.</text>
+  <defs>
+    <linearGradient id="bg" x1="126" y1="100" x2="1480" y2="806" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#161620"/>
+      <stop offset="0.52" stop-color="#2B2234"/>
+      <stop offset="1" stop-color="#7F4A2C"/>
+    </linearGradient>
+  </defs>
+</svg>

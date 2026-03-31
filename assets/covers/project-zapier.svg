@@ -1,0 +1,23 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#111015"/>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <path d="M968 234H1460" stroke="#F36B2C" stroke-width="28" stroke-linecap="square"/>
+  <path d="M1214 124V610" stroke="#F36B2C" stroke-width="28" stroke-linecap="square"/>
+  <rect x="942" y="186" width="548" height="474" rx="28" fill="#15151D" stroke="#F36B2C" stroke-opacity="0.18"/>
+  <rect x="1032" y="294" width="118" height="118" rx="24" fill="#261E1E"/>
+  <rect x="1262" y="294" width="118" height="118" rx="24" fill="#261E1E"/>
+  <rect x="1147" y="466" width="118" height="118" rx="24" fill="#261E1E"/>
+  <path d="M1150 352H1262" stroke="#F36B2C" stroke-width="16" stroke-linecap="round"/>
+  <path d="M1206 352V466" stroke="#F36B2C" stroke-width="16" stroke-linecap="round"/>
+  <text x="126" y="188" fill="#F7B08D" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="6">LEAD AUTOMATION</text>
+  <text x="118" y="350" fill="#F5F7FA" font-family="Syne, Arial, sans-serif" font-size="114" font-weight="700" letter-spacing="-4">Zapier</text>
+  <text x="118" y="448" fill="#F5F7FA" font-family="Syne, Arial, sans-serif" font-size="114" font-weight="700" letter-spacing="-4">Lead Flow</text>
+  <text x="126" y="554" fill="#B8BEC8" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="500">Inbound routing, sorting logic, and cleaner follow-up handling.</text>
+  <defs>
+    <linearGradient id="bg" x1="122" y1="102" x2="1488" y2="808" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#17131B"/>
+      <stop offset="0.58" stop-color="#26171E"/>
+      <stop offset="1" stop-color="#463123"/>
+    </linearGradient>
+  </defs>
+</svg>

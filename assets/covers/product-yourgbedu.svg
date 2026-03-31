@@ -1,0 +1,26 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="900" fill="#0F1017"/>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="1260" cy="180" r="210" fill="#FF8AA2" fill-opacity="0.25"/>
+  <circle cx="1260" cy="180" r="104" fill="#FFD1DA"/>
+  <path d="M1010 604C1048 550 1114 522 1175 534C1225 544 1263 582 1310 590C1365 600 1417 565 1460 529" stroke="#FF7C93" stroke-width="18" stroke-linecap="round"/>
+  <path d="M1000 664C1036 612 1116 586 1190 600C1246 611 1286 655 1346 665C1397 673 1444 650 1482 620" stroke="#4DE3EA" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="1024" cy="606" r="30" fill="#FF7C93"/>
+  <circle cx="1168" cy="534" r="30" fill="#FF7C93"/>
+  <circle cx="1314" cy="592" r="30" fill="#FF7C93"/>
+  <circle cx="1002" cy="664" r="24" fill="#4DE3EA"/>
+  <circle cx="1188" cy="600" r="24" fill="#4DE3EA"/>
+  <circle cx="1346" cy="665" r="24" fill="#4DE3EA"/>
+  <rect x="118" y="126" width="262" height="118" rx="28" fill="#151823" fill-opacity="0.68" stroke="#FF7C93" stroke-opacity="0.38"/>
+  <path d="M178 196C214 168 248 168 284 196" stroke="#FF7C93" stroke-width="18" stroke-linecap="round"/>
+  <path d="M188 177C224 149 258 149 294 177" stroke="#4DE3EA" stroke-width="12" stroke-linecap="round"/>
+  <text x="126" y="520" fill="#F4F7FA" font-family="Syne, Arial, sans-serif" font-size="118" font-weight="700" letter-spacing="-4">YourGbedu</text>
+  <text x="132" y="598" fill="#AEB4C2" font-family="DM Sans, Arial, sans-serif" font-size="36" font-weight="500">AI storytelling and Afrobeat music wrapped in one product experience.</text>
+  <defs>
+    <linearGradient id="bg" x1="152" y1="116" x2="1440" y2="804" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1C1631"/>
+      <stop offset="0.48" stop-color="#542249"/>
+      <stop offset="1" stop-color="#B14F56"/>
+    </linearGradient>
+  </defs>
+</svg>
