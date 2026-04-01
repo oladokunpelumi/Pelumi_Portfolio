@@ -342,8 +342,21 @@ module.exports = {
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
+      slug: "the-grid-the-overide",
+      title: "The Grid, Episode 02: The Overide",
+      type: "grid",
+      series: "The Grid",
+      excerpt: "A studio animator faces an automated resource manager that will kill his final render unless he overrides the system.",
+      publishDate: "2026-04-01",
+      status: "published",
+      tags: ["AI", "Energy", "Automation"],
+      detailPage: "writing/the-grid-the-overide.html",
+      dek: "In Yaba, one override pits creative survival against automated power controls.",
+      sourcePath: "writing/drafts/THE_GRID_002_2026-04-01.md"
+    },
+    {
       slug: "the-grid-prologue",
-      title: "The Grid, Episode 02: Prologue to a Managed Future",
+      title: "The Grid, Episode 03: Prologue to a Managed Future",
       type: "grid",
       series: "The Grid",
       excerpt: "A quiet city starts making decisions before its operators know which system is making them.",
@@ -356,7 +369,7 @@ module.exports = {
     },
     {
       slug: "the-grid-signal-in-the-static",
-      title: "The Grid, Episode 03: Signal in the Static",
+      title: "The Grid, Episode 04: Signal in the Static",
       type: "grid",
       series: "The Grid",
       excerpt: "A robotics maintenance team discovers that the predictive system is not only forecasting failures, but reshaping who gets work and who gets ignored.",
@@ -383,7 +396,7 @@ module.exports = {
     },
     {
       slug: "the-grid-queued-energy-markets",
-      title: "The Grid, Episode 04: Energy Markets After Midnight",
+      title: "The Grid, Episode 05: Energy Markets After Midnight",
       type: "grid",
       series: "The Grid",
       excerpt: "A queued post about autonomous demand response, private microgrids, and markets that never sleep.",
