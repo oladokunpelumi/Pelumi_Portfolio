@@ -355,8 +355,21 @@ module.exports = {
       sourcePath: "writing/drafts/THE_GRID_002_2026-04-01.md"
     },
     {
+      slug: "the-grid-the-gesture-it-learned",
+      title: "The Grid, Episode 03: The Gesture It Learned",
+      type: "grid",
+      series: "The Grid",
+      excerpt: "A robotics plant manager ships a humanoid order using worker footage that trained the machines to replace them.",
+      publishDate: "2026-04-03",
+      status: "published",
+      tags: ["AI", "Automation", "Robotics"],
+      detailPage: "writing/the-grid-the-gesture-it-learned.html",
+      dek: "In Shenzhen, the order ships on time, but the training data carries a debt no one asked to repay.",
+      sourcePath: "writing/drafts/The_GRID_003_2026-04-03.md"
+    },
+    {
       slug: "the-grid-prologue",
-      title: "The Grid, Episode 03: Prologue to a Managed Future",
+      title: "The Grid, Episode 04: Prologue to a Managed Future",
       type: "grid",
       series: "The Grid",
       excerpt: "A quiet city starts making decisions before its operators know which system is making them.",
@@ -369,7 +382,7 @@ module.exports = {
     },
     {
       slug: "the-grid-signal-in-the-static",
-      title: "The Grid, Episode 04: Signal in the Static",
+      title: "The Grid, Episode 05: Signal in the Static",
       type: "grid",
       series: "The Grid",
       excerpt: "A robotics maintenance team discovers that the predictive system is not only forecasting failures, but reshaping who gets work and who gets ignored.",
@@ -396,7 +409,7 @@ module.exports = {
     },
     {
       slug: "the-grid-queued-energy-markets",
-      title: "The Grid, Episode 05: Energy Markets After Midnight",
+      title: "The Grid, Episode 06: Energy Markets After Midnight",
       type: "grid",
       series: "The Grid",
       excerpt: "A queued post about autonomous demand response, private microgrids, and markets that never sleep.",
