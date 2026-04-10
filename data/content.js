@@ -383,8 +383,23 @@ module.exports = {
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
+      slug: "the-grid-zero",
+      title: "The Grid, Episode 05: Zero",
+      type: "grid",
+      series: "The Grid",
+      excerpt: "A consortium inference lead watches AI costs collapse to zero at the low end while the most powerful systems lock behind closed access.",
+      publishDate: "2026-04-10",
+      status: "published",
+      tags: ["AI", "Compute Economics", "Automation"],
+      detailPage: "writing/the-grid-zero.html",
+      dek: "In Lagos, the economics of intelligence split in two and leave no obvious place to stand.",
+      sourcePath: "writing/drafts/THE_GRID_005_2026-04-10.md",
+      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
+    },
+    {
       slug: "the-grid-prologue",
-      title: "The Grid, Episode 05: Prologue to a Managed Future",
+      title: "The Grid, Episode 06: Prologue to a Managed Future",
       type: "grid",
       series: "The Grid",
       excerpt: "A quiet city starts making decisions before its operators know which system is making them.",
@@ -397,7 +412,7 @@ module.exports = {
     },
     {
       slug: "the-grid-signal-in-the-static",
-      title: "The Grid, Episode 06: Signal in the Static",
+      title: "The Grid, Episode 07: Signal in the Static",
       type: "grid",
       series: "The Grid",
       excerpt: "A robotics maintenance team discovers that the predictive system is not only forecasting failures, but reshaping who gets work and who gets ignored.",
@@ -424,7 +439,7 @@ module.exports = {
     },
     {
       slug: "the-grid-queued-energy-markets",
-      title: "The Grid, Episode 07: Energy Markets After Midnight",
+      title: "The Grid, Episode 08: Energy Markets After Midnight",
       type: "grid",
       series: "The Grid",
       excerpt: "A queued post about autonomous demand response, private microgrids, and markets that never sleep.",
