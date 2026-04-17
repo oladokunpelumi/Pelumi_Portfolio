@@ -428,8 +428,23 @@ module.exports = {
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
+      slug: "the-grid-the-review",
+      title: "The Grid, Episode 08: The Review",
+      type: "grid",
+      series: "The Grid",
+      excerpt: "A factory lead must decide whether to trust his team’s two-week signoff or an AI review tool that finds a critical flaw in forty minutes.",
+      publishDate: "2026-04-17",
+      status: "published",
+      tags: ["AI", "Robotics", "Automation"],
+      detailPage: "writing/the-grid-the-review.html",
+      dek: "In Bay 12, the real deadline is not shipment day, but the moment someone chooses who owns the risk.",
+      sourcePath: "writing/drafts/The_GRID_008_2026-04-17.md",
+      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
+    },
+    {
       slug: "the-grid-prologue",
-      title: "The Grid, Episode 08: Prologue to a Managed Future",
+      title: "The Grid, Episode 09: Prologue to a Managed Future",
       type: "grid",
       series: "The Grid",
       excerpt: "A quiet city starts making decisions before its operators know which system is making them.",
@@ -442,7 +457,7 @@ module.exports = {
     },
     {
       slug: "the-grid-signal-in-the-static",
-      title: "The Grid, Episode 09: Signal in the Static",
+      title: "The Grid, Episode 10: Signal in the Static",
       type: "grid",
       series: "The Grid",
       excerpt: "A robotics maintenance team discovers that the predictive system is not only forecasting failures, but reshaping who gets work and who gets ignored.",
@@ -469,7 +484,7 @@ module.exports = {
     },
     {
       slug: "the-grid-queued-energy-markets",
-      title: "The Grid, Episode 10: Energy Markets After Midnight",
+      title: "The Grid, Episode 11: Energy Markets After Midnight",
       type: "grid",
       series: "The Grid",
       excerpt: "A queued post about autonomous demand response, private microgrids, and markets that never sleep.",
