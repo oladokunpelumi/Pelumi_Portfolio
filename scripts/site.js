@@ -1,5 +1,6 @@
 (function () {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const THEME_STORAGE_KEY = "portfolio-theme";
 
   const revealObserver = !reducedMotion.matches && typeof window.IntersectionObserver === "function"
     ? new IntersectionObserver((entries) => {
@@ -21,6 +22,74 @@
     const items = root.querySelectorAll(".reveal");
     if (!items.length) return;
     items.forEach((item) => revealObserver.observe(item));
+  }
+
+  function readTheme() {
+    const attributeTheme = document.documentElement.getAttribute("data-theme");
+    if (attributeTheme === "dark" || attributeTheme === "light") {
+      return attributeTheme;
+    }
+    return "light";
+  }
+
+  function updateThemeMeta(theme) {
+    let themeMeta = document.querySelector("meta[name='theme-color']:not([media])");
+    if (!themeMeta) {
+      themeMeta = document.createElement("meta");
+      themeMeta.setAttribute("name", "theme-color");
+      document.head.appendChild(themeMeta);
+    }
+    themeMeta.setAttribute("content", theme === "dark" ? "#0d1016" : "#f5f7fc");
+  }
+
+  function syncThemeToggle(theme) {
+    const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
+    if (!toggleButtons.length) return;
+
+    const darkModeActive = theme === "dark";
+    const nextThemeLabel = darkModeActive ? "Light" : "Dark";
+    const ariaLabel = darkModeActive ? "Switch to light mode" : "Switch to dark mode";
+
+    toggleButtons.forEach((button) => {
+      button.setAttribute("aria-pressed", String(darkModeActive));
+      button.setAttribute("aria-label", ariaLabel);
+      const textNode = button.querySelector(".theme-toggle-text");
+      if (textNode) {
+        textNode.textContent = nextThemeLabel;
+      }
+    });
+  }
+
+  function setTheme(theme, options = {}) {
+    const nextTheme = theme === "dark" ? "dark" : "light";
+    const persist = options.persist !== false;
+
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    document.documentElement.style.colorScheme = nextTheme;
+    updateThemeMeta(nextTheme);
+    syncThemeToggle(nextTheme);
+
+    if (!persist) return;
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      // Ignore storage failures in private mode or restricted environments.
+    }
+  }
+
+  function initThemeToggle() {
+    const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
+    if (!toggleButtons.length) return;
+
+    setTheme(readTheme(), { persist: false });
+
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const nextTheme = readTheme() === "dark" ? "light" : "dark";
+        setTheme(nextTheme);
+      });
+    });
   }
 
   function initNav() {
@@ -126,6 +195,7 @@
     applyReveal
   };
 
+  initThemeToggle();
   applyReveal();
   initNav();
 })();

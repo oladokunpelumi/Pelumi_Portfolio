@@ -257,6 +257,29 @@ function renderSeo({
   ${noindex ? `<meta name="robots" content="noindex, nofollow">` : ""}`;
 }
 
+function renderThemeBootstrapScript() {
+  return `<script>
+  (function () {
+    var key = "portfolio-theme";
+    var root = document.documentElement;
+    var fallbackTheme = "light";
+    var theme = fallbackTheme;
+
+    try {
+      var saved = localStorage.getItem(key);
+      if (saved === "light" || saved === "dark") {
+        theme = saved;
+      }
+    } catch (error) {
+      theme = fallbackTheme;
+    }
+
+    root.setAttribute("data-theme", theme);
+    root.style.colorScheme = theme;
+  })();
+  </script>`;
+}
+
 function renderNav(basePath, pageType) {
   const writingHref = pageType === "home" ? "writing/index.html" : `${basePath}writing/index.html`;
   const expertiseHref = pageType === "home" ? "#projects" : `${basePath}index.html#projects`;
@@ -287,7 +310,15 @@ function renderNav(basePath, pageType) {
     <div class="nav-links" id="site-nav-links">
       ${pageType === "home" ? homeNav : subNav}
     </div>
-    <a class="nav-cta" href="mailto:oladokunpelumi07@gmail.com">Get in Touch</a>
+    <div class="nav-actions">
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false">
+        <span class="theme-toggle-track" aria-hidden="true">
+          <span class="theme-toggle-thumb"></span>
+        </span>
+        <span class="theme-toggle-text">Dark</span>
+      </button>
+      <a class="nav-cta" href="mailto:oladokunpelumi07@gmail.com">Get in Touch</a>
+    </div>
   </nav>`;
 }
 
@@ -526,10 +557,12 @@ function renderArticlePage(entry, writingEntries) {
     `;
 
   return `<!DOCTYPE html>
-<html lang="en" data-base="../">
+<html lang="en" data-base="../" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
   ${renderSeo({
     title: pageTitle,
     description,
@@ -538,6 +571,7 @@ function renderArticlePage(entry, writingEntries) {
     type: "article",
     noindex
   })}
+  ${renderThemeBootstrapScript()}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -615,10 +649,12 @@ function renderProjectPage(project, projects) {
   });
 
   return `<!DOCTYPE html>
-<html lang="en" data-base="../">
+<html lang="en" data-base="../" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
   ${renderSeo({
     title: `${project.title} | Pelumi Oladokun`,
     description,
@@ -626,6 +662,7 @@ function renderProjectPage(project, projects) {
     imagePath: project.coverImage,
     type: "article"
   })}
+  ${renderThemeBootstrapScript()}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -817,15 +854,18 @@ function renderHomePage(content) {
   const description = "Portfolio website for Pelumi Oladokun featuring AI automation work, shipped products, selected case studies, and writing.";
 
   return `<!DOCTYPE html>
-<html lang="en" data-base="">
+<html lang="en" data-base="" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
   ${renderSeo({
     title: "Pelumi Oladokun | AI Automation Developer",
     description,
     pagePath: "index.html"
   })}
+  ${renderThemeBootstrapScript()}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -1041,15 +1081,18 @@ function renderWritingArchivePage(content) {
   const description = "Writing archive for Pelumi Oladokun centered on The Grid, a site-native fiction series about AI, energy, automation, robotics, and automated finance.";
 
   return `<!DOCTYPE html>
-<html lang="en" data-base="../">
+<html lang="en" data-base="../" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
   ${renderSeo({
     title: "Writing | Pelumi Oladokun",
     description,
     pagePath: "writing/index.html"
   })}
+  ${renderThemeBootstrapScript()}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
