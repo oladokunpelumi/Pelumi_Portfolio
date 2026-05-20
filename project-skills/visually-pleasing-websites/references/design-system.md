@@ -36,8 +36,9 @@ Use a distinctive display font with a calmer body font. Avoid generic combinatio
 
 For this repo, `DESIGN.md` already fixes:
 
-- `Syne` for display
-- `DM Sans` for body
+- `Newsreader` for display and prose
+- `IBM Plex Sans` for UI chrome
+- `IBM Plex Mono` for dates, stack lines, and document links
 
 So this file should guide scale and hierarchy more than font replacement.
 
@@ -74,7 +75,7 @@ Do not invert blindly. Remap values intentionally so:
 - elevated surfaces remain distinct
 - accents are slightly softened
 
-For this portfolio, the obsidian-and-cyan palette already exists in `DESIGN.md`, so use this file to keep the token architecture disciplined.
+For this portfolio, the paper/ink/brick-red palette already exists in `DESIGN.md`, so use this file to keep the token architecture disciplined.
 
 ## Spacing System
 

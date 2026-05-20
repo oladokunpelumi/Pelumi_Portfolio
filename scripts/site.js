@@ -1,16 +1,15 @@
 (function () {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const THEME_STORAGE_KEY = "portfolio-theme";
+  const themeKey = "portfolio-theme";
 
-  const revealObserver = !reducedMotion.matches && typeof window.IntersectionObserver === "function"
+  const revealObserver = !reducedMotion.matches && "IntersectionObserver" in window
     ? new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          revealObserver.unobserve(entry.target);
-        }
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("visible");
+        revealObserver.unobserve(entry.target);
       });
-    }, { threshold: 0.08 })
+    }, { threshold: 0.08, rootMargin: "0px 0px -48px 0px" })
     : {
       observe(target) {
         target.classList.add("visible");
@@ -19,75 +18,53 @@
     };
 
   function applyReveal(root = document) {
-    const items = root.querySelectorAll(".reveal");
-    if (!items.length) return;
-    items.forEach((item) => revealObserver.observe(item));
+    root.querySelectorAll(".reveal").forEach((item) => revealObserver.observe(item));
   }
 
-  function readTheme() {
-    const attributeTheme = document.documentElement.getAttribute("data-theme");
-    if (attributeTheme === "dark" || attributeTheme === "light") {
-      return attributeTheme;
-    }
-    return "light";
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
   }
 
   function updateThemeMeta(theme) {
-    let themeMeta = document.querySelector("meta[name='theme-color']:not([media])");
-    if (!themeMeta) {
-      themeMeta = document.createElement("meta");
-      themeMeta.setAttribute("name", "theme-color");
-      document.head.appendChild(themeMeta);
+    let meta = document.querySelector("meta[name='theme-color']:not([media])");
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("name", "theme-color");
+      document.head.appendChild(meta);
     }
-    themeMeta.setAttribute("content", theme === "dark" ? "#0d1016" : "#f5f7fc");
+    meta.setAttribute("content", theme === "dark" ? "#0F1419" : "#F5F1E8");
   }
 
   function syncThemeToggle(theme) {
-    const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
-    if (!toggleButtons.length) return;
-
-    const darkModeActive = theme === "dark";
-    const nextThemeLabel = darkModeActive ? "Light" : "Dark";
-    const ariaLabel = darkModeActive ? "Switch to light mode" : "Switch to dark mode";
-
-    toggleButtons.forEach((button) => {
-      button.setAttribute("aria-pressed", String(darkModeActive));
-      button.setAttribute("aria-label", ariaLabel);
-      const textNode = button.querySelector(".theme-toggle-text");
-      if (textNode) {
-        textNode.textContent = nextThemeLabel;
-      }
+    const isDark = theme === "dark";
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(isDark));
+      button.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
+      const label = button.querySelector(".theme-toggle-text");
+      if (label) label.textContent = isDark ? "Light" : "Dark";
     });
   }
 
-  function setTheme(theme, options = {}) {
+  function setTheme(theme, persist = true) {
     const nextTheme = theme === "dark" ? "dark" : "light";
-    const persist = options.persist !== false;
-
     document.documentElement.setAttribute("data-theme", nextTheme);
     document.documentElement.style.colorScheme = nextTheme;
     updateThemeMeta(nextTheme);
     syncThemeToggle(nextTheme);
 
     if (!persist) return;
-
     try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+      window.localStorage.setItem(themeKey, nextTheme);
     } catch (error) {
-      // Ignore storage failures in private mode or restricted environments.
+      // Storage can be unavailable in private or hardened browser contexts.
     }
   }
 
-  function initThemeToggle() {
-    const toggleButtons = document.querySelectorAll("[data-theme-toggle]");
-    if (!toggleButtons.length) return;
-
-    setTheme(readTheme(), { persist: false });
-
-    toggleButtons.forEach((button) => {
+  function initTheme() {
+    setTheme(currentTheme(), false);
+    document.querySelectorAll("[data-theme-toggle]").forEach((button) => {
       button.addEventListener("click", () => {
-        const nextTheme = readTheme() === "dark" ? "light" : "dark";
-        setTheme(nextTheme);
+        setTheme(currentTheme() === "dark" ? "light" : "dark");
       });
     });
   }
@@ -95,83 +72,58 @@
   function initNav() {
     const toggle = document.querySelector(".nav-toggle");
     const links = document.querySelector(".nav-links");
-
     if (!toggle || !links) return;
 
-    if (!links.id) {
-      links.id = "site-nav-links";
-    }
+    const focusableSelector = "a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])";
 
-    if (!toggle.getAttribute("aria-controls")) {
-      toggle.setAttribute("aria-controls", links.id);
-    }
-
-    const focusableSelector = [
-      "a[href]",
-      "button:not([disabled])",
-      "[tabindex]:not([tabindex='-1'])"
-    ].join(",");
-
-    function getFocusableItems() {
+    function focusableItems() {
       return Array.from(links.querySelectorAll(focusableSelector))
-        .filter((item) => !item.hasAttribute("hidden") && item.offsetParent !== null);
+        .filter((item) => !item.hasAttribute("hidden"));
     }
 
-    function closeMenu({ restoreFocus = false } = {}) {
+    function closeMenu(restoreFocus = false) {
       links.classList.remove("open");
       toggle.setAttribute("aria-expanded", "false");
       document.body.classList.remove("nav-open");
-
-      if (restoreFocus) {
-        toggle.focus();
-      }
+      if (restoreFocus) toggle.focus();
     }
 
     function openMenu() {
       links.classList.add("open");
       toggle.setAttribute("aria-expanded", "true");
       document.body.classList.add("nav-open");
-
-      const firstLink = getFocusableItems()[0];
-      if (firstLink) {
-        firstLink.focus();
-      }
+      const first = focusableItems()[0];
+      if (first) first.focus();
     }
 
     toggle.addEventListener("click", () => {
-      const expanded = toggle.getAttribute("aria-expanded") === "true";
-      if (expanded) {
-        closeMenu({ restoreFocus: true });
+      if (links.classList.contains("open")) {
+        closeMenu(true);
       } else {
         openMenu();
       }
     });
 
-    document.addEventListener("click", (event) => {
-      if (links.classList.contains("open") && !links.contains(event.target) && !toggle.contains(event.target)) {
-        closeMenu();
-      }
+    links.addEventListener("click", (event) => {
+      if (event.target.closest("a")) closeMenu();
     });
 
-    links.addEventListener("click", (event) => {
-      if (event.target.closest("a")) {
-        closeMenu();
-      }
+    document.addEventListener("click", (event) => {
+      if (!links.classList.contains("open")) return;
+      if (links.contains(event.target) || toggle.contains(event.target)) return;
+      closeMenu();
     });
 
     document.addEventListener("keydown", (event) => {
       if (!links.classList.contains("open")) return;
-
       if (event.key === "Escape") {
-        closeMenu({ restoreFocus: true });
+        closeMenu(true);
         return;
       }
-
       if (event.key !== "Tab") return;
 
-      const items = getFocusableItems();
+      const items = focusableItems();
       if (!items.length) return;
-
       const first = items[0];
       const last = items[items.length - 1];
 
@@ -185,17 +137,13 @@
     });
 
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 760) {
-        closeMenu();
-      }
+      if (window.innerWidth > 760) closeMenu();
     });
   }
 
-  window.PortfolioSite = {
-    applyReveal
-  };
+  window.PortfolioSite = { applyReveal };
 
-  initThemeToggle();
-  applyReveal();
+  initTheme();
   initNav();
+  applyReveal();
 })();

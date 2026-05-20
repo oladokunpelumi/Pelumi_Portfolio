@@ -1,20 +1,20 @@
 ---
 name: visually-pleasing-websites
-description: Use this skill when designing, refining, auditing, or restructuring a website, landing page, portfolio, archive, or article-driven UI where visual quality matters. It is especially useful for typography systems, color tokens, layout composition, motion, performance-sensitive frontend polish, and accessibility-minded design decisions. In this portfolio repo, use this skill as the broad web-design workflow and quality gate, then reconcile every decision with DESIGN.md, which remains the project-specific aesthetic authority.
+description: Use this skill when designing, refining, auditing, or restructuring a website, landing page, portfolio, archive, or article-driven UI where visual quality matters. It is especially useful for typography systems, color tokens, layout composition, motion, performance-sensitive frontend polish, and accessibility-minded design decisions. In this portfolio repo, use this skill as the broad web-design workflow and quality gate, then reconcile every decision with DESIGN.md, which is the project-specific editorial authority.
 ---
 
 # Visually Pleasing Websites
 
 Project-owned mirror of the upstream `Design_Skill`, curated for this portfolio.
 
-Use this skill to improve website quality without defaulting to generic UI patterns. It is the broad method; `DESIGN.md` is the portfolio-specific style doctrine.
+Use this skill to improve website quality without defaulting to generic UI patterns. It is the broad method; `DESIGN.md` is the portfolio-specific editorial doctrine.
 
 ## Repo Rule Stack
 
 When working in this project, follow this order:
 
 1. Use this skill to frame the design problem.
-2. Use `DESIGN.md` to lock the portfolio's actual aesthetic choices.
+2. Use `DESIGN.md` to lock the portfolio's actual editorial choices.
 3. Implement in the current build-driven site:
    - `scripts/build.js`
    - `styles/site.css`
@@ -43,10 +43,10 @@ Before making UI changes:
 ## What This Skill Does Not Override
 
 - `DESIGN.md` still decides the portfolio's brand expression:
-  - `Syne + DM Sans`
-  - obsidian/cyan palette
-  - editorial asymmetry
-  - anti-generic "Digital Architect" tone
+  - `Newsreader + IBM Plex`
+  - paper/ink/brick-red palette
+  - literary magazine rhythm
+  - anti-generic "writer who builds" tone
 
 ## Reference Files
 

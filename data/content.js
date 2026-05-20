@@ -1,4 +1,11 @@
 module.exports = {
+  site: {
+    title: "Pelumi Oladokun",
+    email: "oladokunpelumi07@gmail.com",
+    location: "Lagos, Nigeria",
+    dateline: "Volume I · Issue 14 · May 2026 · Lagos",
+    description: "Pelumi Oladokun builds automation systems and writes The Grid, a fiction series about the infrastructure underneath modern work."
+  },
   products: [
     {
       slug: "solarwise",
@@ -6,9 +13,9 @@ module.exports = {
       url: "https://solarwise-dun.vercel.app/",
       coverImage: "assets/covers/product-solarwise-main.webp",
       secondaryCoverImage: "assets/covers/product-solarwise-sub.webp",
-      homepageCategory: "Energy Tech",
-      homepageDescription: "Smart solar system sizing platform for households and enterprises. Input your appliances, set your location, and receive three fully engineered system designs in seconds.",
-      homepageChips: ["Claude Code", "Full-Stack", "Engineering Calculator", "55+ Cities"],
+      homepageCategory: "Energy Product",
+      homepageDescription: "SolarWise sizes a solar power system in under a second. You enter your appliances, set your city, and three engineered designs come back with full component specs. It exists because most people deciding on solar in Lagos are forced to trust a salesperson's instinct. Now they do not have to.",
+      homepageChips: ["Engineering Calculator", "55+ Cities", "Full-Stack"],
       coverAlt: "SolarWise product interface preview"
     },
     {
@@ -16,9 +23,9 @@ module.exports = {
       title: "YourGbedu",
       url: "https://www.yourgbedu.com",
       coverImage: "assets/covers/product-yourgbedu-real.webp",
-      homepageCategory: "Music AI Product",
-      homepageDescription: "AI-powered Afrobeat storytelling platform that turns personal prompts into tailored music moments with a distinct brand voice and interactive listening flow.",
-      homepageChips: ["Claude Code", "AI Integration", "Full-Stack", "Brand System"],
+      homepageCategory: "Music Product",
+      homepageDescription: "YourGbedu is the platform for custom Afrobeats songs about real people. You fill out a brief, a producer composes the track, and the song goes where greeting cards used to live. The work is making each one feel inevitable, not produced.",
+      homepageChips: ["AI Integration", "Brand System", "Full-Stack"],
       coverAlt: "YourGbedu product interface preview"
     }
   ],
@@ -27,45 +34,114 @@ module.exports = {
       title: "Building with the Claude API",
       issuer: "Anthropic",
       issued: "March 2026",
-      credentialId: "dcyx957e2dq5",
-      icon: "</>"
+      credentialId: "dcyx957e2dq5"
     },
     {
       title: "AI Fluency Framework & Foundations",
       issuer: "Anthropic",
       issued: "March 2026",
-      credentialId: "d9dj8oqmawmc",
-      icon: "Brain"
+      credentialId: "d9dj8oqmawmc"
     },
     {
       title: "Teaching the AI Fluency Framework",
       issuer: "Anthropic",
       issued: "March 2026",
-      credentialId: "isyfo4yy94d",
-      icon: "Teach"
+      credentialId: "isyfo4yy94d"
     },
     {
       title: "AI Fluency for Nonprofits",
       issuer: "Anthropic",
       issued: "March 2026",
-      credentialId: "aq43ntueyu26",
-      icon: "Care"
+      credentialId: "aq43ntueyu26"
     }
   ],
   projects: [
     {
+      slug: "analytics-documentation-practice",
+      title: "Analytics Documentation Practice",
+      category: "Data Systems",
+      summary: "Ten documents, eighty-seven pages, one shared template. Three case studies in how raw operational data becomes decision-ready output: a Nigerian marketplace, a distributor, and a retail bank.",
+      impact: "The documentation discipline is what is being demonstrated: findings framed for executives, models explained for engineers, and runbooks written for the moment the analyst is not in the room.",
+      stack: ["PostgreSQL 18", "Python", "Node.js", "Matplotlib", "Tableau Public", "LibreOffice"],
+      canonicalPath: "work/analytics-documentation-practice/index.html",
+      artifactRepo: "https://github.com/oladokunpelumi/analytics-documentation-practice",
+      heroImage: "assets/cases/analytics/bank-star-schema.png",
+      coverImage: "assets/cases/analytics/bank-star-schema.png",
+      status: "published",
+      featured: true,
+      selectedWork: true,
+      role: "Packaged three analytics projects as if they shipped to internal teams: one template, one writing register, and enough detail for another person to inspect the work without a handoff call.",
+      outcome: "The bundle reads as work, not as a portfolio piece. That is the point.",
+      headlineStrip: "10 DOCUMENTS · 87 PAGES · 1 SHARED TEMPLATE · 0 SLOP HITS",
+      snapshot: [
+        { label: "Documents", value: "10" },
+        { label: "Pages", value: "87" },
+        { label: "Template", value: "1" }
+      ],
+      problem: [
+        "Three analytics projects, three audiences, three documentation requirements. A Nigerian e-commerce marketplace needed cleaned data and an executive memo. A distributor needed a dashboard with findings written for operators. A retail bank needed a dimensional warehouse with engineering documentation.",
+        "The brief I gave myself was simple: package all three as if they shipped to internal teams. Same document template across all artifacts. Same writing register. Same standard for what counts as decision-ready output."
+      ],
+      approach: [
+        "Most analytics portfolios show the output. Fewer show the documentation. This project treats documentation as the product: the place where methodology, limitations, query logic, model design, and operating risk become readable.",
+        "The work is grouped into three case studies: Marketplace SQL Analytics, Distributor BI Dashboard, and Bank Warehouse Design. Each one includes browser-readable PDFs and editable source documents in the repository."
+      ],
+      buildDetails: [
+        "Marketplace SQL Analytics: PostgreSQL cleaning, eight business queries, an executive memo, methodology report, data quality audit, and query documentation pack.",
+        "Distributor BI Dashboard: Tableau dashboard work with a methodology report and a findings report built around six findings and five recommendations.",
+        "Bank Warehouse Design: PostgreSQL star schema, SCD Type 2 logic, surrogate keys, a dimensional model design, data dictionary, and ETL operations runbook."
+      ],
+      results: [
+        "Ten finished documents share one template, heading hierarchy, table of contents pattern, chart treatment, and footer system.",
+        "Claims anchor to specific numbers and limitations are stated openly instead of hidden behind presentation language.",
+        "Anti-slop checks across the bundle returned zero hits for the filler patterns called out in the project repository."
+      ],
+      previewImages: [
+        {
+          label: "Marketplace SQL Analytics",
+          path: "assets/cases/analytics/marketplace-data-quality.png",
+          alt: "Data quality audit chart from the marketplace SQL analytics documentation."
+        },
+        {
+          label: "Distributor BI Dashboard",
+          path: "assets/cases/analytics/distributor-findings.png",
+          alt: "Dashboard findings chart from the distributor analytics documentation."
+        },
+        {
+          label: "Bank Warehouse Design",
+          path: "assets/cases/analytics/bank-star-schema.png",
+          alt: "Star schema diagram from the bank warehouse design documentation."
+        }
+      ],
+      documents: [
+        { group: "Marketplace SQL Analytics", title: "Executive Memo", path: "assets/cases/analytics/01-executive-memo.pdf" },
+        { group: "Marketplace SQL Analytics", title: "Technical Methodology Report", path: "assets/cases/analytics/02-technical-methodology.pdf" },
+        { group: "Marketplace SQL Analytics", title: "Data Quality Audit", path: "assets/cases/analytics/03-data-quality-audit.pdf" },
+        { group: "Marketplace SQL Analytics", title: "Query Documentation Pack", path: "assets/cases/analytics/04-query-documentation-pack.pdf" },
+        { group: "Distributor BI Dashboard", title: "Executive Summary", path: "assets/cases/analytics/05-executive-summary.pdf" },
+        { group: "Distributor BI Dashboard", title: "Dashboard Methodology Report", path: "assets/cases/analytics/06-dashboard-methodology.pdf" },
+        { group: "Distributor BI Dashboard", title: "Dashboard Findings Report", path: "assets/cases/analytics/07-dashboard-findings.pdf" },
+        { group: "Bank Warehouse Design", title: "Dimensional Model Design", path: "assets/cases/analytics/08-dimensional-model-design.pdf" },
+        { group: "Bank Warehouse Design", title: "Data Dictionary", path: "assets/cases/analytics/09-data-dictionary.pdf" },
+        { group: "Bank Warehouse Design", title: "ETL Operations Runbook", path: "assets/cases/analytics/10-etl-operations-runbook.pdf" }
+      ],
+      links: [
+        { label: "Source repository", url: "https://github.com/oladokunpelumi/analytics-documentation-practice" }
+      ]
+    },
+    {
       slug: "x-profile-scanning",
       title: "X Profile Scanning Pipeline",
       category: "Data Pipeline",
-      summary: "Built a Playwright pipeline that scanned 20,509 X profiles in 55 hours and filled a spreadsheet with verification status, follower counts, and region data.",
-      impact: "Cut a weeks-long vetting job down to one unattended run.",
+      summary: "A vetting workflow that ran for two days unattended and returned 20,509 X profiles with verification status, follower counts, and region data filled in.",
+      impact: "Python, Playwright, openpyxl. Replaced a job that would have taken a small team weeks.",
       stack: ["Python", "Playwright", "openpyxl", "Automation Research"],
       coverImage: "assets/covers/project-xscan.svg",
       detailPage: "Projects/x-profile-scanning.html",
-      articleUrl: "",
-      videoUrl: "",
+      canonicalPath: "work/x-profile-scanning/index.html",
       status: "published",
       featured: true,
+      selectedWork: true,
       role: "Designed the scan flow, checkpoints, delays, retries, and spreadsheet output.",
       outcome: "The team got a usable creator list and a cleaned database.",
       snapshot: [
@@ -100,15 +176,16 @@ module.exports = {
       slug: "rag-agent",
       title: "RAG Agent in n8n",
       category: "AI Retrieval System",
-      summary: "Built an n8n RAG workflow that pulled the right context before answering, so the assistant could respond from actual source material.",
-      impact: "Turned a simple chatbot flow into a grounded knowledge tool.",
+      summary: "An n8n workflow that pulls the right context from a source library before answering, so an assistant responds from actual reading instead of guessing.",
+      impact: "Built so a domain expert can maintain it without touching code.",
       stack: ["n8n", "RAG", "LLM", "Knowledge Workflows"],
       coverImage: "assets/covers/project-rag.svg",
       detailPage: "Projects/rag-agent.html",
-      articleUrl: "",
+      canonicalPath: "work/rag-agent/index.html",
       videoUrl: "https://youtu.be/jRG0yjkZr7o?si=Zbh_2LtmUnvacVvD",
       status: "published",
       featured: true,
+      selectedWork: true,
       role: "Built the workflow, retrieval flow, and response chain.",
       outcome: "The system answered from context instead of guessing.",
       snapshot: [
@@ -143,11 +220,12 @@ module.exports = {
       slug: "price-update",
       title: "Price Update",
       category: "Automation System",
-      summary: "Built an n8n workflow that tracked price changes, calculated the deltas, and sent a clean report on schedule.",
+      summary: "An n8n workflow that tracked price changes, calculated the deltas, and sent a clean report on schedule.",
       impact: "Replaced manual weekly checking with one repeatable reporting flow.",
       stack: ["n8n", "Webhooks", "API Integration", "Scheduled Workflows"],
       coverImage: "assets/covers/project-price-update.svg",
       detailPage: "Projects/price-update.html",
+      canonicalPath: "work/price-update/index.html",
       articleUrl: "https://docs.google.com/document/d/10w4E2_XfC5D606YxlZd91z9TaQT1rapfha6VsMS2sOE/edit?tab=t.0#heading=h.f9afjb1rlxjg",
       videoUrl: "https://drive.google.com/file/d/1dzVhMygpjFZ7l84ajUHZozh7baegRWS5/view",
       status: "published",
@@ -187,11 +265,12 @@ module.exports = {
       slug: "twitter-to-telegram",
       title: "Twitter to Telegram",
       category: "Monitoring Pipeline",
-      summary: "Built a monitoring pipeline that watched selected X accounts and pushed the important updates into Telegram.",
+      summary: "A monitoring pipeline that watched selected X accounts and pushed the important updates into Telegram.",
       impact: "Moved signal tracking from scattered feeds into one fast channel.",
       stack: ["Python", "Automation", "Data Processing", "Telegram"],
       coverImage: "assets/covers/project-twitter-telegram.svg",
       detailPage: "Projects/twitter-to-telegram.html",
+      canonicalPath: "work/twitter-to-telegram/index.html",
       articleUrl: "https://drive.google.com/file/d/1sFFfjyxGr4rAmRV8CfbLNUr2HiZKw9Yu/view",
       videoUrl: "https://www.linkedin.com/posts/oladokun-pelumi-a168aa201_cryptotrading-machinelearning-ai-activity-7367277996799328258-epwU?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAADORYzIBTkTZpT881s2WlIwe3WPY_mwSJ8A",
       status: "published",
@@ -231,13 +310,13 @@ module.exports = {
       slug: "zapier-lead-automation",
       title: "Zapier Customer Lead Automation",
       category: "Lead Intelligence",
-      summary: "Built a lead handling flow that sorted inbound contacts into clearer follow-up paths and reduced messy manual handling.",
+      summary: "A lead handling flow that sorted inbound contacts into clearer follow-up paths and reduced messy manual handling.",
       impact: "Turned lead capture into a working system instead of a spreadsheet chore.",
       stack: ["Zapier", "Python", "TensorFlow", "Data Science"],
       coverImage: "assets/covers/project-zapier.svg",
       detailPage: "Projects/zapier-lead-automation.html",
+      canonicalPath: "work/zapier-lead-automation/index.html",
       articleUrl: "https://docs.google.com/document/d/1bWScID08DIYjWsa2NG6v8id3FDC__FXJcF8XSs-3AhI/edit?tab=t.0",
-      videoUrl: "",
       status: "published",
       featured: true,
       role: "Built the flow and framed the segmentation logic around follow-up action.",
@@ -274,13 +353,13 @@ module.exports = {
       slug: "house-price-classification",
       title: "Machine Learning House Prediction",
       category: "Machine Learning",
-      summary: "Built a neural-network model that grouped houses into price bands from their features.",
-      impact: "Turned raw property data into faster screening signals.",
+      summary: "A neural network that grouped houses into price bands from their feature data.",
+      impact: "Built to turn raw property listings into screening signals. The model and its trade-offs are written up alongside.",
       stack: ["Python", "TensorFlow", "Machine Learning", "Neural Networks"],
       coverImage: "assets/covers/project-house-price.svg",
       detailPage: "Projects/house-price-classification.html",
+      canonicalPath: "work/house-price-classification/index.html",
       articleUrl: "https://drive.google.com/file/d/1XAPsiL5tMYXZbp2QljGS-z5PjeZfhS5U/view",
-      videoUrl: "",
       status: "published",
       featured: true,
       role: "Built the model workflow and framed the result around real use.",
@@ -432,7 +511,7 @@ module.exports = {
       title: "The Grid, Episode 08: The Review",
       type: "grid",
       series: "The Grid",
-      excerpt: "A factory lead must decide whether to trust his team’s two-week signoff or an AI review tool that finds a critical flaw in forty minutes.",
+      excerpt: "A factory lead must decide whether to trust his team's two-week signoff or an AI review tool that finds a critical flaw in forty minutes.",
       publishDate: "2026-04-17",
       status: "published",
       tags: ["AI", "Robotics", "Automation"],

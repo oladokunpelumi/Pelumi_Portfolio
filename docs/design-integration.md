@@ -1,41 +1,30 @@
 # Design Skill Integration
 
-This project mirrors the upstream `Design_Skill` as a local, project-owned snapshot under `project-skills/visually-pleasing-websites/`.
+The project-owned design skill under `project-skills/visually-pleasing-websites/` remains the workflow guide. `DESIGN.md` is the current portfolio-specific authority.
 
 ## Rule Stack
 
-Use the design guidance in this order:
-
 1. `project-skills/visually-pleasing-websites/`
-   Broad workflow, layout thinking, motion guidance, performance checks, and reusable design quality rules.
+   Use for design process, layout thinking, motion guidance, performance checks, and accessibility-minded review.
 2. `DESIGN.md`
-   The portfolio's locked aesthetic direction and taste:
-   `Syne + DM Sans`, obsidian/cyan palette, editorial asymmetry, and anti-generic presentation.
+   Locks the actual site direction: Newsreader, IBM Plex, paper/ink/brick-red, editorial rhythm, and "writer who builds" positioning.
 3. Production implementation files
    - `scripts/build.js`
    - `styles/site.css`
    - `scripts/site.js`
    - `scripts/writing.js`
 
-## Precedence Examples
+## Precedence
 
-- Typography:
-  the skill offers hierarchy guidance; `DESIGN.md` locks `Syne + DM Sans`.
-- Color:
-  the skill supports token discipline; `DESIGN.md` locks the obsidian/cyan palette.
-- Layout:
-  the skill offers patterns; `DESIGN.md` chooses editorial asymmetry over generic templates.
-- Performance and accessibility:
-  the skill acts as the reusable checklist layer for shipping decisions.
+- Typography: `DESIGN.md` chooses Newsreader + IBM Plex.
+- Color: `DESIGN.md` chooses paper/ink/brick-red.
+- Layout: `DESIGN.md` chooses editorial rows, hairlines, readable columns, and restrained case-study pages.
+- The redesign guide in `files 2/pelumi-editorial-redesign-guide.md` is the source document behind this direction.
 
-## Runtime Install Note
+## Runtime Note
 
-The repo mirror is the canonical snapshot for this project.
-
-If you want Codex to auto-discover the skill in your local environment, run:
+The repo mirror is the canonical local skill snapshot. Install it into Codex discovery with:
 
 ```bash
 ./scripts/install-design-skill.sh
 ```
-
-That copies the mirrored skill into `${CODEX_HOME:-$HOME/.codex}/skills/visually-pleasing-websites`.
