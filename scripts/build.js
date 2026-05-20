@@ -60,6 +60,24 @@ function formatDate(dateString, options = {}) {
   });
 }
 
+function ordinalDay(day) {
+  const suffix = day % 100 >= 11 && day % 100 <= 13
+    ? "th"
+    : { 1: "st", 2: "nd", 3: "rd" }[day % 10] || "th";
+  return `${day}${suffix}`;
+}
+
+function localDateParts(date = new Date()) {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return {
+    iso: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+    issue: `Issue ${ordinalDay(day)}`,
+    monthYear: date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+  };
+}
+
 function withBase(basePath, targetPath) {
   if (!targetPath) return "";
   if (/^(https?:)?\/\//.test(targetPath) || targetPath.startsWith("mailto:") || targetPath.startsWith("#")) {
@@ -347,6 +365,26 @@ function renderDateline(content) {
   return `<div class="dateline">${escapeHtml(content.site?.dateline || "Volume I · May 2026 · Lagos")}</div>`;
 }
 
+function renderHomeDateline(content) {
+  const dateParts = localDateParts();
+  const volume = content.site?.volume || "Volume 3";
+  const location = content.site?.location || "Remote";
+
+  return `<div class="dateline dateline-edition" data-current-edition>
+    <span>${escapeHtml(volume)}</span>
+    <span aria-hidden="true">·</span>
+    <time data-current-issue datetime="${escapeHtml(dateParts.iso)}">${escapeHtml(dateParts.issue)} · ${escapeHtml(dateParts.monthYear)}</time>
+    <span aria-hidden="true">·</span>
+    <span class="dateline-location">
+      <svg class="dateline-icon" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false">
+        <path d="M12 21s6-5.1 6-11a6 6 0 1 0-12 0c0 5.9 6 11 6 11Z"></path>
+        <circle cx="12" cy="10" r="2.3"></circle>
+      </svg>
+      <span>${escapeHtml(location)}</span>
+    </span>
+  </div>`;
+}
+
 function renderFooter(basePath, pageType = "home") {
   return `
   <footer class="site-footer">
@@ -416,7 +454,7 @@ function renderHeroSection(content) {
     <section class="hero-section" aria-labelledby="hero-title">
       <div class="hero-inner container">
         <div class="hero-content">
-          <p class="hero-kicker reveal">Portfolio / Lagos / 2026</p>
+          <p class="hero-kicker reveal">Portfolio / Remote / 2026</p>
           <div class="hero-title-wrap reveal">
             <h1 class="hero-title" id="hero-title" aria-label="Pelumi Oladokun">
               <span class="hero-title-line hero-title-line-first" aria-hidden="true">Pelumi</span>
@@ -447,7 +485,7 @@ function renderHomePage(content) {
   const body = `
   <main id="top">
     ${renderHeroSection(content)}
-    ${renderDateline(content)}
+    ${renderHomeDateline(content)}
     <section class="lead-section">
       <div class="container read-col">
         <p class="lead-eyebrow reveal">A note from the builder</p>

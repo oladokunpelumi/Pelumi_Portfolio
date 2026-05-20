@@ -2,8 +2,9 @@ module.exports = {
   site: {
     title: "Pelumi Oladokun",
     email: "oladokunpelumi07@gmail.com",
-    location: "Lagos, Nigeria",
-    dateline: "Volume I · Issue 14 · May 2026 · Lagos",
+    location: "Remote",
+    volume: "Volume 3",
+    dateline: "Volume 3 · Issue 21st · May 2026 · Remote",
     description: "Pelumi Oladokun builds automation systems and writes The Grid, a fiction series about the infrastructure underneath modern work."
   },
   products: [
