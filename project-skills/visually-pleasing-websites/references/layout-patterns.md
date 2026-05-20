@@ -93,7 +93,7 @@ When a section or component has multiple possible widths, treat the component as
 
 ### Navigation
 
-Should feel anchored, lightweight, and easy to scan. In this repo, the glass nav pill already matches the local design doctrine; use layout changes carefully so it remains compact and controlled.
+Should feel anchored, lightweight, and easy to scan. In this repo, the masthead should feel closer to an editorial publication than an app shell.
 
 ### Hero
 
@@ -132,6 +132,8 @@ For this repo, choose layouts that support:
 - stronger left-to-right hierarchy
 - asymmetry with logic
 - breathing room between major sections
+- long-form reading comfort
+- hairline-separated work rows
 
 Avoid:
 

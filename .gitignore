@@ -1,1 +1,16 @@
 dist/
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+.idea/
+.vscode/
+
+# Local environment files; keep templates visible to git.
+.env
+.env.*
+!.env.example
+!.env.template
+!.env.sample

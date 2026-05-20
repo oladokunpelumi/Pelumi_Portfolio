@@ -15,8 +15,10 @@ function writeFile(relativePath, content) {
   fs.writeFileSync(destination, content);
 }
 
-function copyFile(sourceRelativePath, destinationRelativePath) {
+function copyFile(sourceRelativePath, destinationRelativePath = sourceRelativePath) {
   const source = path.join(ROOT, sourceRelativePath);
+  if (!fs.existsSync(source)) return;
+
   const destination = path.join(DIST, destinationRelativePath);
   ensureDir(destination);
   fs.copyFileSync(source, destination);
@@ -29,7 +31,7 @@ function loadContent() {
 }
 
 function escapeHtml(value) {
-  return String(value)
+  return String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -37,10 +39,10 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-function formatDate(dateString) {
+function formatDate(dateString, options = {}) {
   if (!dateString) return "";
-  let parsed;
 
+  let parsed;
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     const [year, month, day] = dateString.split("-").map(Number);
     parsed = new Date(Date.UTC(year, month - 1, day, 12));
@@ -49,9 +51,10 @@ function formatDate(dateString) {
   }
 
   if (Number.isNaN(parsed.getTime())) return dateString;
+
   return parsed.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
+    year: options.short ? undefined : "numeric",
+    month: options.short ? "short" : "long",
     day: "numeric",
     timeZone: "UTC"
   });
@@ -65,10 +68,24 @@ function withBase(basePath, targetPath) {
   return `${basePath}${targetPath}`;
 }
 
+function routeHref(route) {
+  if (!route) return "";
+  return route.replace(/index\.html$/, "");
+}
+
+function projectRoute(project) {
+  return project.canonicalPath || `work/${project.slug}/index.html`;
+}
+
+function projectHref(project, basePath = "") {
+  return withBase(basePath, routeHref(projectRoute(project)));
+}
+
 function toAbsoluteUrl(targetPath) {
   if (!targetPath) return "";
   if (/^(https?:)?\/\//.test(targetPath)) return targetPath;
-  return `${SITE_URL}/${targetPath.replace(/^\//, "")}`;
+  const clean = targetPath === "index.html" ? "" : routeHref(targetPath).replace(/^\//, "");
+  return `${SITE_URL}/${clean}`;
 }
 
 function assetPath(targetPath) {
@@ -76,46 +93,55 @@ function assetPath(targetPath) {
 
   if (/\.(png|jpe?g)$/i.test(targetPath)) {
     const candidate = targetPath.replace(/\.(png|jpe?g)$/i, ".webp");
-    if (fs.existsSync(path.join(ROOT, candidate))) {
-      return candidate;
-    }
+    if (fs.existsSync(path.join(ROOT, candidate))) return candidate;
   }
 
   return targetPath;
 }
 
+function addAsset(assetPaths, value) {
+  if (!value) return;
+  const resolved = assetPath(value);
+  if (resolved && resolved.startsWith("assets/")) assetPaths.add(resolved);
+}
+
 function collectDeployAssets(content) {
   const assetPaths = new Set();
-  const addAsset = (value) => {
-    if (!value) return;
-    const resolved = assetPath(value);
-    if (resolved && resolved.startsWith("assets/")) {
-      assetPaths.add(resolved);
-    }
-  };
 
   (content.products || []).forEach((product) => {
-    addAsset(product.coverImage);
-    addAsset(product.secondaryCoverImage);
+    addAsset(assetPaths, product.coverImage);
+    addAsset(assetPaths, product.secondaryCoverImage);
   });
 
   (content.projects || []).forEach((project) => {
-    if (project.status === "published") {
-      addAsset(project.coverImage);
-    }
+    if (project.status !== "published") return;
+    addAsset(assetPaths, project.coverImage);
+    addAsset(assetPaths, project.heroImage);
+    (project.previewImages || []).forEach((image) => addAsset(assetPaths, image.path));
+    (project.documents || []).forEach((document) => addAsset(assetPaths, document.path));
   });
 
   (content.writing || []).forEach((entry) => {
-    if (entry.status === "published") {
-      addAsset(entry.coverImage);
-    }
+    if (entry.status === "published") addAsset(assetPaths, entry.coverImage);
   });
 
   return Array.from(assetPaths);
 }
 
-function createChips(values) {
-  return (values || []).map((value) => `<span class="chip">${escapeHtml(value)}</span>`).join("");
+function publishedProjects(content) {
+  return (content.projects || []).filter((project) => project.status === "published");
+}
+
+function publishedWriting(content) {
+  return (content.writing || [])
+    .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")
+    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
+}
+
+function latestGridEntry(content) {
+  return publishedWriting(content)
+    .filter((entry) => entry.type === "grid")
+    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))[0];
 }
 
 function entrySeriesLabel(entry) {
@@ -125,7 +151,6 @@ function entrySeriesLabel(entry) {
 function stripDuplicateTitle(markdown, title) {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const firstHeading = lines.findIndex((line) => /^#\s+/.test(line.trim()));
-
   if (firstHeading === -1) return markdown;
 
   const headingText = lines[firstHeading].replace(/^#\s+/, "").trim();
@@ -137,16 +162,10 @@ function stripDuplicateTitle(markdown, title) {
     normalizedTitle.split(": ").slice(1).join(": ").trim()
   ].filter(Boolean));
 
-  if (!titleCandidates.has(normalizedHeading)) {
-    return markdown;
-  }
+  if (!titleCandidates.has(normalizedHeading)) return markdown;
 
   lines.splice(firstHeading, 1);
-
-  while (lines[0] === "") {
-    lines.shift();
-  }
-
+  while (lines[0] === "") lines.shift();
   return lines.join("\n");
 }
 
@@ -157,6 +176,36 @@ function formatInlineMarkdown(text) {
     .replace(/`(.+?)`/g, "<code>$1</code>");
 }
 
+function renderMarkdownBlock(block, state) {
+  if (/^---+$/.test(block)) {
+    state.sawRule = true;
+    return `<hr class="article-rule">`;
+  }
+
+  const lines = block.split("\n");
+  const headingMatch = lines[0].match(/^(#{2,6})\s+(.+)$/);
+
+  if (headingMatch) {
+    const heading = headingMatch[2].trim();
+    if (/signal decoder/i.test(heading)) {
+      state.inSignalDecoder = true;
+      return `<section class="signal-decoder"><p class="signal-label">Signal Decoder</p><h2>${formatInlineMarkdown(heading.replace(/^SIGNAL DECODER\s*[—-]?\s*/i, ""))}</h2>`;
+    }
+
+    const level = state.inSignalDecoder ? 3 : Math.min(headingMatch[1].length + 1, 6);
+    return `<h${level}>${formatInlineMarkdown(heading)}</h${level}>`;
+  }
+
+  const text = lines.join(" ");
+  const openingClass = state.sawRule && !state.openingMarked && !state.inSignalDecoder
+    ? ` class="article-opening"`
+    : "";
+
+  if (openingClass) state.openingMarked = true;
+
+  return `<p${openingClass}>${formatInlineMarkdown(text)}</p>`;
+}
+
 function markdownToHtml(markdown, title) {
   const normalized = stripDuplicateTitle(markdown, title).replace(/\r\n/g, "\n");
   const blocks = normalized
@@ -164,21 +213,19 @@ function markdownToHtml(markdown, title) {
     .map((block) => block.trim())
     .filter(Boolean);
 
-  return blocks.map((block) => {
-    if (/^---+$/.test(block)) {
-      return `<hr class="article-rule">`;
-    }
+  const state = {
+    sawRule: false,
+    openingMarked: false,
+    inSignalDecoder: false
+  };
+  const output = [];
 
-    const lines = block.split("\n");
-    const headingMatch = lines[0].match(/^(#{2,6})\s+(.+)$/);
+  blocks.forEach((block) => {
+    output.push(renderMarkdownBlock(block, state));
+  });
 
-    if (headingMatch) {
-      const level = Math.min(headingMatch[1].length + 1, 6);
-      return `<h${level}>${formatInlineMarkdown(headingMatch[2].trim())}</h${level}>`;
-    }
-
-    return `<p>${formatInlineMarkdown(lines.join(" "))}</p>`;
-  }).join("");
+  if (state.inSignalDecoder) output.push("</section>");
+  return output.join("");
 }
 
 function markdownToText(markdown, title) {
@@ -202,8 +249,7 @@ function readSourceDocument(entry) {
 }
 
 function assertPublishedWritingSources(content) {
-  const missing = (content.writing || [])
-    .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")
+  const missing = publishedWriting(content)
     .filter((entry) => !entry.sourcePath || !fs.existsSync(path.join(ROOT, entry.sourcePath)));
 
   if (!missing.length) return;
@@ -212,31 +258,13 @@ function assertPublishedWritingSources(content) {
   throw new Error(`Published writing entries require a readable source document:\n${details}`);
 }
 
-function getCertificationIcon(iconValue) {
-  const iconMap = {
-    "</>": "</>",
-    Brain: "🧠",
-    Teach: "🎓",
-    Care: "🤝"
-  };
-
-  return iconMap[iconValue] || iconValue;
-}
-
 function buildDescription({ dek, excerpt, summary, bodyText }) {
   const preferred = dek || excerpt || summary || bodyText || "";
   return preferred.length > 165 ? `${preferred.slice(0, 162).trim()}...` : preferred;
 }
 
-function renderSeo({
-  title,
-  description,
-  pagePath,
-  imagePath,
-  type = "website",
-  noindex = false
-}) {
-  const canonical = pagePath === "index.html" ? `${SITE_URL}/` : toAbsoluteUrl(pagePath);
+function renderSeo({ title, description, pagePath, imagePath, type = "website", noindex = false }) {
+  const canonical = toAbsoluteUrl(pagePath);
   const imageUrl = imagePath ? toAbsoluteUrl(assetPath(imagePath)) : "";
   const twitterCard = imageUrl ? "summary_large_image" : "summary";
 
@@ -262,871 +290,564 @@ function renderThemeBootstrapScript() {
   (function () {
     var key = "portfolio-theme";
     var root = document.documentElement;
-    var fallbackTheme = "light";
-    var theme = fallbackTheme;
-
+    var theme = "light";
     try {
       var saved = localStorage.getItem(key);
       if (saved === "light" || saved === "dark") {
         theme = saved;
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        theme = "dark";
       }
-    } catch (error) {
-      theme = fallbackTheme;
-    }
-
+    } catch (error) {}
     root.setAttribute("data-theme", theme);
     root.style.colorScheme = theme;
   })();
   </script>`;
 }
 
-function renderNav(basePath, pageType) {
-  const writingHref = pageType === "home" ? "writing/index.html" : `${basePath}writing/index.html`;
-  const expertiseHref = pageType === "home" ? "#projects" : `${basePath}index.html#projects`;
-  const contactHref = pageType === "home" ? "#contact" : `${basePath}index.html#contact`;
-  const aboutHref = pageType === "home" ? "#about" : `${basePath}index.html#about`;
-  const productsHref = pageType === "home" ? "#products" : `${basePath}index.html#products`;
-
-  const homeNav = `
-      <a href="${aboutHref}">About</a>
-      <a href="${productsHref}">Products</a>
-      <a href="${expertiseHref}">Expertise</a>
-      <a href="${writingHref}">Writing</a>
-      <a href="${contactHref}">Contact</a>
-  `;
-
-  const subNav = `
-      <a href="${expertiseHref}">Expertise</a>
-      <a href="${writingHref}">Writing</a>
-      <a href="${contactHref}">Contact</a>
-  `;
-
+function renderFontLinks() {
   return `
-  <nav class="site-nav">
-    <a class="nav-logo" href="${pageType === "home" ? "index.html" : `${basePath}index.html`}">Pelumi<span>.</span></a>
-    <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav-links">
-      <span></span>
-    </button>
-    <div class="nav-links" id="site-nav-links">
-      ${pageType === "home" ? homeNav : subNav}
-    </div>
-    <div class="nav-actions">
-      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false">
-        <span class="theme-toggle-track" aria-hidden="true">
-          <span class="theme-toggle-thumb"></span>
-        </span>
-        <span class="theme-toggle-text">Dark</span>
-      </button>
-      <a class="nav-cta" href="mailto:oladokunpelumi07@gmail.com">Get in Touch</a>
-    </div>
-  </nav>`;
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">`;
 }
 
-function renderFooter(basePath, pageType) {
-  const homeHref = pageType === "home" ? "index.html" : `${basePath}index.html`;
-  const writingHref = pageType === "home" ? "writing/index.html" : `${basePath}writing/index.html`;
-  const extraLink = pageType === "home"
-    ? `<a href="https://www.yourgbedu.com" target="_blank" rel="noreferrer">YourGbedu</a>`
-    : `<a href="https://substack.com/@pelumioladokun" target="_blank" rel="noreferrer">Substack</a>`;
+function renderNav(basePath, pageType = "home") {
+  const homeHref = pageType === "home" ? "#top" : withBase(basePath, "index.html");
+  const writingHref = withBase(basePath, "writing/");
+  const workHref = withBase(basePath, "work/");
+  const contactHref = pageType === "home" ? "#contact" : withBase(basePath, "index.html#contact");
 
   return `
-  <footer class="site-footer">
-    <div class="page-shell footer-inner">
-      <span>© 2026 Pelumi Oladokun. All rights reserved.</span>
-      <div class="footer-links">
-        <a href="${homeHref}">Home</a>
-        <a href="${writingHref}">Writing</a>
-        ${extraLink}
-        <a href="mailto:oladokunpelumi07@gmail.com">Email</a>
+  <header class="masthead">
+    <div class="container masthead-row">
+      <a class="logo" href="${escapeHtml(homeHref)}">Pelumi.</a>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav-links">
+        <span></span>
+      </button>
+      <nav class="nav-links" id="site-nav-links" aria-label="Primary navigation">
+        <a href="${escapeHtml(homeHref)}">Home</a>
+        <a href="${escapeHtml(workHref)}"${pageType === "work" || pageType === "project" ? " aria-current=\"page\"" : ""}>Work</a>
+        <a href="${escapeHtml(writingHref)}"${pageType === "writing" || pageType === "article" ? " aria-current=\"page\"" : ""}>Writing</a>
+        <a href="${escapeHtml(contactHref)}">Contact</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true"></span>
+          <span class="theme-toggle-text">Dark</span>
+        </button>
+        <a class="write-link" href="mailto:oladokunpelumi07@gmail.com">Write</a>
       </div>
+    </div>
+  </header>`;
+}
+
+function renderDateline(content) {
+  return `<div class="dateline">${escapeHtml(content.site?.dateline || "Volume I · May 2026 · Lagos")}</div>`;
+}
+
+function renderFooter(basePath, pageType = "home") {
+  return `
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© 2026 Pelumi Oladokun.</span>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="${escapeHtml(withBase(basePath, "work/"))}">Work</a>
+        <a href="${escapeHtml(withBase(basePath, "writing/"))}">Writing</a>
+        <a href="https://substack.com/@pelumioladokun" target="_blank" rel="noreferrer">Substack</a>
+        <a href="mailto:oladokunpelumi07@gmail.com">Email</a>
+      </nav>
     </div>
   </footer>`;
 }
 
-function renderProductCard(product, basePath) {
-  const inset = product.secondaryCoverImage
-    ? `<div class="cover-inset" style="background-image: url('${escapeHtml(withBase(basePath, assetPath(product.secondaryCoverImage)))}');" aria-hidden="true"></div>`
-    : "";
-
-  return `
-    <article class="product-card reveal">
-      <div class="product-cover">
-        <img class="cover-image" src="${escapeHtml(withBase(basePath, assetPath(product.coverImage)))}" alt="${escapeHtml(product.coverAlt || `${product.title} product preview`)}" loading="lazy" decoding="async">
-        <span class="cover-pill">Live product</span>
-        ${inset}
-        <div class="cover-mark">${escapeHtml(product.title)}</div>
-      </div>
-      <div class="product-content">
-        <p class="card-type">${escapeHtml(product.homepageCategory || "Live Product")}</p>
-        <h3>${escapeHtml(product.title)}</h3>
-        <p>${escapeHtml(product.homepageDescription || "")}</p>
-        <div class="chip-row">${createChips(product.homepageChips || [])}</div>
-        <a class="text-link" href="${escapeHtml(product.url)}" target="_blank" rel="noreferrer">View live product</a>
-      </div>
-    </article>
-  `;
+function renderDocumentShell({ basePath, pageType, title, description, pagePath, imagePath, type, body, extraScripts = "" }) {
+  return `<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#F5F1E8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F1419" media="(prefers-color-scheme: dark)">
+  ${renderSeo({ title, description, pagePath, imagePath, type })}
+  ${renderThemeBootstrapScript()}
+  ${renderFontLinks()}
+  <link rel="stylesheet" href="${escapeHtml(withBase(basePath, "styles/site.css"))}">
+</head>
+<body>
+  ${renderNav(basePath, pageType)}
+  ${body}
+  ${renderFooter(basePath, pageType)}
+  <script src="${escapeHtml(withBase(basePath, "scripts/site.js"))}"></script>
+  ${extraScripts}
+</body>
+</html>`;
 }
 
-function renderCertificationProofCard(certification) {
-  const icon = getCertificationIcon(certification.icon);
-
+function renderProductEntry(product, basePath) {
   return `
-    <article class="proof-cert-card reveal">
-      <span class="proof-cert-icon" aria-hidden="true">${escapeHtml(icon)}</span>
-      <div class="proof-cert-body">
-        <strong>${escapeHtml(certification.title)}</strong>
-        <span>${escapeHtml(certification.issuer)} · ${escapeHtml(certification.issued)}</span>
+    <article class="product-entry reveal">
+      <div class="product-copy">
+        <p class="eyebrow">${escapeHtml(product.homepageCategory)}</p>
+        <h3><em>${escapeHtml(product.title)}</em></h3>
+        <p>${escapeHtml(product.homepageDescription)}</p>
+        <a class="text-link mono-link" href="${escapeHtml(product.url)}" target="_blank" rel="noreferrer">Visit ${escapeHtml(product.title)} →</a>
       </div>
-    </article>
-  `;
+      <a class="product-cover" href="${escapeHtml(product.url)}" target="_blank" rel="noreferrer" aria-label="Visit ${escapeHtml(product.title)}">
+        <img src="${escapeHtml(withBase(basePath, assetPath(product.coverImage)))}" alt="${escapeHtml(product.coverAlt || `${product.title} product preview`)}" loading="lazy" decoding="async">
+      </a>
+    </article>`;
 }
 
-function renderTechnicalKeywordCard(item) {
+function renderSelectedWorkEntry(project, basePath) {
   return `
-    <article class="tech-card reveal">
-      <div class="tech-card-icon" aria-hidden="true">${escapeHtml(item.icon)}</div>
-      <div>
-        <h3>${escapeHtml(item.title)}</h3>
-        <p>${escapeHtml(item.copy)}</p>
-      </div>
-      <div class="chip-row">${createChips(item.tags)}</div>
-    </article>
-  `;
+    <article class="selected-work-entry reveal">
+      <p class="eyebrow">${escapeHtml(project.category)}</p>
+      <h3><a href="${escapeHtml(projectHref(project, basePath))}"><em>${escapeHtml(project.title)}</em></a></h3>
+      <p>${escapeHtml(project.summary)} ${project.impact ? escapeHtml(project.impact) : ""}</p>
+      <div class="entry-tags">${(project.stack || []).slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("<span>·</span>")}</div>
+      <a class="text-link mono-link" href="${escapeHtml(projectHref(project, basePath))}">Read case study →</a>
+    </article>`;
 }
 
-function renderContactCard(item) {
+function renderHeroSection(content) {
   return `
-    <a class="contact-card" href="${escapeHtml(item.href)}"${item.external ? ` target="_blank" rel="noreferrer"` : ""}>
-      <span class="contact-icon" aria-hidden="true">${escapeHtml(item.icon)}</span>
-      <div>
-        <small>${escapeHtml(item.label)}</small>
-        <strong>${escapeHtml(item.value)}</strong>
-      </div>
-    </a>
-  `;
-}
-
-function renderFeaturedProjectCard(project, basePath) {
-  const externalCtas = [];
-  if (project.videoUrl) {
-    externalCtas.push(`<a class="button-ghost" href="${escapeHtml(project.videoUrl)}" target="_blank" rel="noreferrer">Watch demo</a>`);
-  }
-  if (project.articleUrl) {
-    externalCtas.push(`<a class="button-ghost" href="${escapeHtml(project.articleUrl)}" target="_blank" rel="noreferrer">View article</a>`);
-  }
-
-  return `
-    <article class="feature-card reveal">
-      <div class="project-cover">
-        <img class="cover-image" src="${escapeHtml(withBase(basePath, assetPath(project.coverImage)))}" alt="${escapeHtml(`${project.title} project cover`)}" loading="lazy" decoding="async">
-        <div class="cover-caption">
-          <small>${escapeHtml(project.category)}</small>
-          <span>${escapeHtml(project.title)}</span>
-        </div>
-      </div>
-      <div class="feature-card-body">
-        <div class="feature-card-title-row">
-          <div>
-            <p class="card-type">${escapeHtml(project.category)}</p>
-            <h3>${escapeHtml(project.title)}</h3>
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="hero-inner container">
+        <div class="hero-content">
+          <p class="hero-kicker reveal">Portfolio / Lagos / 2026</p>
+          <div class="hero-title-wrap reveal">
+            <h1 class="hero-title" id="hero-title" aria-label="Pelumi Oladokun">
+              <span class="hero-title-line hero-title-line-first" aria-hidden="true">Pelumi</span>
+              <span class="hero-title-line" aria-hidden="true">Oladokun</span>
+            </h1>
           </div>
+          <p class="hero-role reveal">AI Builder &middot; Writer of <em>The Grid</em></p>
+          <p class="hero-copyline reveal">I build automation systems and independent products, and write <em>The Grid</em>: fiction about the infrastructure quietly running modern life.</p>
+          <nav class="hero-meta reveal" aria-label="Hero links">
+            <a href="#grid">Read The Grid</a>
+            <span aria-hidden="true">/</span>
+            <a href="#work">Selected Work</a>
+            <span aria-hidden="true">/</span>
+            <a href="mailto:oladokunpelumi07@gmail.com">Email</a>
+          </nav>
         </div>
-        <p>${escapeHtml(project.summary)}</p>
-        <p class="feature-card-impact">${escapeHtml(project.impact)}</p>
-        <div class="chip-row">${createChips(project.stack)}</div>
-        <div class="cta-row">
-          <a class="button button-primary" href="${escapeHtml(withBase(basePath, project.detailPage))}">Read case study</a>
-          ${externalCtas.join("")}
+        <figure class="hero-portrait reveal">
+          <img src="assets/hero/pelumi-paper-cutout.webp" alt="Pelumi Oladokun, AI builder and writer of The Grid" loading="eager" decoding="async" fetchpriority="high">
+        </figure>
+      </div>
+    </section>`;
+}
+
+function renderHomePage(content) {
+  const latestGrid = latestGridEntry(content);
+  const selectedProjects = publishedProjects(content).filter((project) => project.selectedWork).slice(0, 3);
+
+  const body = `
+  <main id="top">
+    ${renderHeroSection(content)}
+    ${renderDateline(content)}
+    <section class="lead-section">
+      <div class="container read-col">
+        <p class="lead-eyebrow reveal">A note from the builder</p>
+        <div class="lead prose-lead reveal">
+          <p>Taught myself to build while studying agricultural economics outside Lagos. The path was sideways. Curiosity about how systems worked, then about how interfaces shaped behavior, then about how the AI models doing the new work were actually structured. Today I ship automation systems, deploy independent products, and write a fiction series called <em>The Grid</em> about the same infrastructure I work inside during the day. The work and the writing run on the same engine.</p>
         </div>
       </div>
-    </article>
-  `;
+    </section>
+
+    <section class="movement" id="production">
+      <div class="container editorial-grid">
+        <div class="movement-head reveal">
+          <p class="eyebrow">Currently in production</p>
+          <h2><em>Two products with real users, real constraints, and no room for theatre.</em></h2>
+        </div>
+        <div class="movement-body product-list">
+          ${(content.products || []).map((product) => renderProductEntry(product, "")).join("")}
+        </div>
+      </div>
+    </section>
+
+    <section class="grid-feature" id="grid">
+      <div class="container">
+        <div class="grid-feature-media reveal">
+          ${latestGrid?.coverImage ? `<img src="${escapeHtml(assetPath(latestGrid.coverImage))}" alt="${escapeHtml(latestGrid.coverAlt || "The Grid series cover")}" loading="lazy" decoding="async">` : ""}
+        </div>
+        <div class="grid-feature-copy read-col reveal">
+          <p class="eyebrow">The Grid</p>
+          <h2><em>Fiction about infrastructure, with the receipt attached.</em></h2>
+          <p><em>The Grid</em> is a fiction series about the infrastructure that quietly runs modern life: AI, automation, energy, robotics, automated finance. Each episode reads as a story; each one ends with a <em>Signal Decoder</em> that traces the fiction back to real signals from the same week.</p>
+          ${latestGrid ? `
+            <article class="latest-card">
+              <span>Latest</span>
+              <strong>${escapeHtml(latestGrid.title)}</strong>
+              <p>${escapeHtml(latestGrid.excerpt)}</p>
+              <a class="text-link mono-link" href="${escapeHtml(latestGrid.detailPage)}">Read the story →</a>
+            </article>` : ""}
+          <a class="text-link mono-link" href="writing/">Read the archive →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="movement" id="work">
+      <div class="container editorial-grid">
+        <div class="movement-head reveal">
+          <p class="eyebrow">Selected work</p>
+          <h2><em>Proof that the systems survive contact with the world.</em></h2>
+        </div>
+        <div class="movement-body selected-work-list">
+          ${selectedProjects.map((project) => renderSelectedWorkEntry(project, "")).join("")}
+          <a class="archive-link reveal" href="work/">All work →</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="movement" id="notes">
+      <div class="container read-col">
+        <p class="eyebrow reveal">Workshop notes</p>
+        <h2 class="section-title reveal"><em>I build like the handoff matters.</em></h2>
+        <p class="body-large reveal">I work the way a careful older engineer would: small steps, real tests, refusal to ship something I have not watched run. My edge is listening to a messy problem, finding what actually matters, and turning it into something operational. The work runs in four lanes: AI retrieval, automation, blockchain monitoring, and applied modeling. Anthropic certified across the Claude API, AI Fluency, Teaching, and Nonprofit frameworks. Agricultural economics at FUNAAB, second class upper, 2024. NYSC completed. Lagos-based, working remotely across time zones.</p>
+      </div>
+    </section>
+
+    <section class="movement contact-section" id="contact">
+      <div class="container read-col">
+        <p class="eyebrow reveal">Write</p>
+        <h2 class="section-title reveal"><em>Start with the constraint.</em></h2>
+        <p class="body-large reveal">I like conversations that begin with a real constraint and end with a clear plan, working prototype, or shipped system. If that is the shape of what you are working on, write.</p>
+        <div class="contact-links reveal">
+          <a href="mailto:oladokunpelumi07@gmail.com">Email</a>
+          <span>·</span>
+          <a href="https://linkedin.com/in/oladokun-pelumi-a168aa201" target="_blank" rel="noreferrer">LinkedIn</a>
+          <span>·</span>
+          <a href="https://x.com/pelumioladokun_" target="_blank" rel="noreferrer">X</a>
+          <span>·</span>
+          <a href="https://substack.com/@pelumioladokun" target="_blank" rel="noreferrer">Substack</a>
+        </div>
+      </div>
+    </section>
+  </main>`;
+
+  return renderDocumentShell({
+    basePath: "",
+    pageType: "home",
+    title: "Pelumi Oladokun — Builder, writer of The Grid",
+    description: content.site?.description || "Portfolio website for Pelumi Oladokun.",
+    pagePath: "index.html",
+    imagePath: latestGrid?.coverImage,
+    body
+  });
 }
 
-function renderArchiveCard(entry, basePath) {
-  const tags = (entry.tags || []).map((tag) => escapeHtml(tag)).join("|");
+function renderWritingArchiveEntry(entry, basePath) {
   return `
-    <article class="archive-card reveal" data-entry-card data-series="${escapeHtml(entry.series)}" data-tags="${tags}">
-      <div class="archive-meta">
-        <span>${escapeHtml(entrySeriesLabel(entry))}</span>
-        <span>${escapeHtml(formatDate(entry.publishDate))}</span>
-        <span>${escapeHtml(entry.type)}</span>
+    <article class="episode-row reveal" data-entry-card data-series="${escapeHtml(entry.series)}" data-tags="${escapeHtml((entry.tags || []).join("|"))}">
+      <div class="episode-number">${escapeHtml(entry.seriesLabel || entry.title.match(/Episode\s+(\d+)/)?.[1] || "Grid")}</div>
+      <div class="episode-main">
+        <p class="episode-meta">${escapeHtml(formatDate(entry.publishDate, { short: true }))} · ${escapeHtml((entry.tags || []).slice(0, 2).join(" · "))}</p>
+        <h3><a href="${escapeHtml(withBase(basePath, entry.detailPage))}"><em>${escapeHtml(entry.title)}</em></a></h3>
+        <p>${escapeHtml(entry.excerpt)}</p>
       </div>
-      <h3>${escapeHtml(entry.title)}</h3>
-      <p>${escapeHtml(entry.excerpt)}</p>
-      <div class="chip-row">${createChips(entry.tags)}</div>
-      <a class="text-link" href="${escapeHtml(withBase(basePath, entry.detailPage))}">Read article</a>
-    </article>
-  `;
+      <a class="text-link mono-link" href="${escapeHtml(withBase(basePath, entry.detailPage))}">Read →</a>
+    </article>`;
 }
 
-function renderWritingSpotlightCard(entry, basePath) {
-  return `
-    <article class="spotlight-story-card">
-      <div class="spotlight-story-meta">
-        <span>${escapeHtml(entrySeriesLabel(entry))}</span>
-        <span>${escapeHtml(formatDate(entry.publishDate))}</span>
-        <span>${escapeHtml(entry.type)}</span>
-      </div>
-      <h3>${escapeHtml(entry.title)}</h3>
-      <p>${escapeHtml(entry.excerpt)}</p>
-      <div class="chip-row">${createChips(entry.tags)}</div>
-      <div class="spotlight-story-actions">
-        <a class="button button-primary" href="${escapeHtml(withBase(basePath, entry.detailPage))}">Read the story</a>
-        <a class="text-link" href="${escapeHtml(withBase(basePath, "writing/index.html"))}">Browse the archive</a>
-      </div>
-    </article>
-  `;
-}
-
-function renderWritingButtons(writingEntries) {
-  const tags = Array.from(new Set(writingEntries.flatMap((entry) => entry.tags || [])));
+function renderWritingButtons(entries) {
+  const tags = Array.from(new Set(entries.flatMap((entry) => entry.tags || [])));
   const buttons = [
-    { key: "all", label: "All published" },
+    { key: "all", label: "All" },
     { key: "The Grid", label: "The Grid" },
     ...tags.map((tag) => ({ key: tag, label: tag }))
   ];
 
   return buttons.map((button, index) => `
-    <button class="filter-button${index === 0 ? " active" : ""}" type="button" data-filter="${escapeHtml(button.key)}" aria-pressed="${index === 0 ? "true" : "false"}">
-      ${escapeHtml(button.label)}
-    </button>
+    <button class="filter-button${index === 0 ? " active" : ""}" type="button" data-filter="${escapeHtml(button.key)}" aria-pressed="${index === 0 ? "true" : "false"}">${escapeHtml(button.label)}</button>
   `).join("");
 }
 
-function renderArticleBody(entry) {
-  const markdown = readSourceDocument(entry);
-
-  if (markdown) {
-    return `
-      <article class="article-prose-card reveal">
-        <div class="article-prose-meta">
-          <p class="card-type">${escapeHtml(entrySeriesLabel(entry))}</p>
-          <span class="article-source-label">${escapeHtml(entry.status === "published" ? "Source document" : "Queued draft")}</span>
-        </div>
-        <div class="article-prose">
-          ${markdownToHtml(markdown, entry.title)}
-        </div>
-      </article>
-    `;
-  }
-
-  return `
-    <article class="article-prose-card reveal">
-      <div class="article-prose-meta">
-        <p class="card-type">${escapeHtml(entrySeriesLabel(entry))}</p>
-        <span class="article-source-label">${escapeHtml(entry.status === "queued" ? "Queued entry" : "Unavailable")}</span>
-      </div>
-      <div class="article-prose">
-        <p>${escapeHtml(entry.dek || entry.excerpt || "This writing entry is not available yet.")}</p>
-        <p>${escapeHtml(entry.status === "queued"
-          ? "This entry is queued for publication and is not yet part of the public archive."
-          : "The source document for this entry could not be loaded.")}</p>
-      </div>
-    </article>
-  `;
-}
-
-function renderArticlePage(entry, writingEntries) {
-  const siblings = writingEntries
-    .filter((item) => item.slug !== entry.slug && item.status === "published" && item.type !== "substack-feature")
-    .slice(0, 2);
-  const markdown = readSourceDocument(entry);
-  const bodyText = markdown ? markdownToText(markdown, entry.title) : "";
-  const description = buildDescription({
-    dek: entry.dek,
-    excerpt: entry.excerpt,
-    bodyText
-  });
-  const pageTitle = `${entry.title} | Pelumi Oladokun`;
-  const noindex = entry.status !== "published";
-
-  const articleVisual = entry.coverImage
-    ? `
-      <div class="article-cover-frame">
-        <img class="article-cover-image" src="${escapeHtml(withBase("../", assetPath(entry.coverImage)))}" alt="${escapeHtml(entry.coverAlt || `${entry.title} cover image`)}" loading="eager" decoding="async">
-      </div>
-    `
-    : `
-      <div class="article-atmosphere" aria-hidden="true">
-        <div class="article-atmosphere-mark">
-          <small>${escapeHtml(entrySeriesLabel(entry))}</small>
-          <span>${escapeHtml(entry.title)}</span>
-        </div>
-      </div>
-    `;
-
-  return `<!DOCTYPE html>
-<html lang="en" data-base="../" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
-  ${renderSeo({
-    title: pageTitle,
-    description,
-    pagePath: entry.detailPage,
-    imagePath: entry.coverImage,
-    type: "article",
-    noindex
-  })}
-  ${renderThemeBootstrapScript()}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles/site.css">
-</head>
-<body>
-  <div class="noise-layer"></div>
-  ${renderNav("../", "article")}
-  <main>
-    <section class="page-hero page-shell">
-      <a class="article-back" href="index.html">← Back to writing</a>
-    </section>
-    <section class="section page-shell article-page-shell">
-      <div class="article-layout">
-        <div class="article-main">
-          <article class="article-hero-card article-hero-card-reading reveal">
-            ${articleVisual}
-            <div class="article-hero-content article-hero-content-reading">
-              <div class="article-hero-meta-row">
-                <p class="card-type">${escapeHtml(entrySeriesLabel(entry))}</p>
-                <span class="article-hero-date">${escapeHtml(formatDate(entry.publishDate))}</span>
-              </div>
-              <h1>${escapeHtml(entry.title)}</h1>
-              <p class="article-dek">${escapeHtml(entry.dek || entry.excerpt)}</p>
-              <div class="chip-row article-chip-row">${createChips(entry.tags)}</div>
-            </div>
-          </article>
-          ${renderArticleBody(entry)}
-        </div>
-        <aside class="article-sidebar article-sidebar-reading">
-          <article class="article-sidebar-card reveal">
-            <span class="sidebar-label">Article Notes</span>
-            <div class="meta-list">
-              <div>
-                <strong>Published</strong>
-                <span>${escapeHtml(formatDate(entry.publishDate))}</span>
-              </div>
-              <div>
-                <strong>Series</strong>
-                <span>${escapeHtml(entrySeriesLabel(entry))}</span>
-              </div>
-              <div>
-                <strong>Tags</strong>
-                <span>${escapeHtml(entry.tags.join(" · "))}</span>
-              </div>
-            </div>
-          </article>
-          <article class="article-sidebar-card reveal">
-            <span class="sidebar-label">More from the archive</span>
-            ${siblings.map((item) => `
-              <div class="article-card">
-                <small class="card-type">${escapeHtml(item.series)}</small>
-                <strong>${escapeHtml(item.title)}</strong>
-                <p>${escapeHtml(item.excerpt)}</p>
-                <a class="text-link" href="${escapeHtml(withBase("../", item.detailPage))}">Read article</a>
-              </div>
-            `).join("") || `<p>No other published entries yet.</p>`}
-          </article>
-        </aside>
-      </div>
-    </section>
-  </main>
-  ${renderFooter("../", "article")}
-  <script src="../scripts/site.js"></script>
-</body>
-</html>`;
-}
-
-function renderProjectPage(project, projects) {
-  const currentIndex = projects.findIndex((item) => item.slug === project.slug);
-  const nextProject = projects[(currentIndex + 1) % projects.length];
-  const description = buildDescription({
-    summary: project.summary,
-    excerpt: project.outcome
-  });
-
-  return `<!DOCTYPE html>
-<html lang="en" data-base="../" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
-  ${renderSeo({
-    title: `${project.title} | Pelumi Oladokun`,
-    description,
-    pagePath: project.detailPage,
-    imagePath: project.coverImage,
-    type: "article"
-  })}
-  ${renderThemeBootstrapScript()}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles/site.css">
-</head>
-<body>
-  <div class="noise-layer"></div>
-  ${renderNav("../", "project")}
-  <main>
-    <section class="page-hero page-shell">
-      <a class="project-back" href="../index.html#projects">← Back to projects</a>
-    </section>
-    <section class="section page-shell">
-      <div class="project-layout">
-        <div class="project-main">
-          <article class="project-hero-card reveal">
-            <div class="cover-art">
-              <img class="cover-image" src="${escapeHtml(withBase("../", assetPath(project.coverImage)))}" alt="${escapeHtml(`${project.title} project cover`)}" decoding="async">
-              <div class="cover-caption">
-                <small>${escapeHtml(project.category)}</small>
-                <span>${escapeHtml(project.title)}</span>
-              </div>
-            </div>
-            <div class="project-hero-content">
-              <p class="card-type">${escapeHtml(project.category)}</p>
-              <h1>${escapeHtml(project.title)}</h1>
-              <p>${escapeHtml(project.summary)}</p>
-              <p class="feature-card-impact">${escapeHtml(project.outcome)}</p>
-              <div class="chip-row">${createChips(project.stack)}</div>
-              <div class="snapshot-grid">
-                ${(project.snapshot || []).map((item) => `
-                  <article class="snapshot-item">
-                    <strong>${escapeHtml(item.value)}</strong>
-                    <span>${escapeHtml(item.label)}</span>
-                  </article>
-                `).join("")}
-              </div>
-            </div>
-          </article>
-          <article class="project-section reveal">
-            <p class="card-type">Problem</p>
-            <h2>What needed to be solved.</h2>
-            ${(project.problem || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
-          </article>
-          <article class="project-section reveal">
-            <p class="card-type">Approach</p>
-            <h2>How the system was framed.</h2>
-            ${(project.approach || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
-          </article>
-          <article class="project-section reveal">
-            <p class="card-type">Build Details</p>
-            <h2>Architecture, tooling, and operating logic.</h2>
-            <ul class="detail-list">
-              ${(project.buildDetails || []).map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
-            </ul>
-          </article>
-          <article class="project-section reveal">
-            <p class="card-type">Results</p>
-            <h2>Operational outcome.</h2>
-            <ul class="detail-list">
-              ${(project.results || []).map((detail) => `<li>${escapeHtml(detail)}</li>`).join("")}
-            </ul>
-          </article>
-        </div>
-        <aside class="project-sidebar">
-          <article class="project-sidebar-card reveal">
-            <span class="sidebar-label">Role</span>
-            <p>${escapeHtml(project.role)}</p>
-          </article>
-          <article class="project-sidebar-card reveal">
-            <span class="sidebar-label">Quick Facts</span>
-            <div class="meta-list">
-              <div>
-                <strong>Status</strong>
-                <span>Published case study</span>
-              </div>
-              <div>
-                <strong>Category</strong>
-                <span>${escapeHtml(project.category)}</span>
-              </div>
-              <div>
-                <strong>Stack</strong>
-                <span>${escapeHtml(project.stack.join(" · "))}</span>
-              </div>
-            </div>
-          </article>
-          <article class="project-sidebar-card reveal">
-            <span class="sidebar-label">Media & Links</span>
-            <div class="project-nav-links">
-              ${(project.links || []).map((link) => `
-                <a class="button-ghost" href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label)}</a>
-              `).join("") || "<p>No external links available for this case study yet.</p>"}
-            </div>
-          </article>
-          <article class="project-sidebar-card reveal">
-            <span class="sidebar-label">Next Project</span>
-            <div class="article-card">
-              <small class="card-type">${escapeHtml(nextProject.category)}</small>
-              <strong>${escapeHtml(nextProject.title)}</strong>
-              <p>${escapeHtml(nextProject.summary)}</p>
-              <a class="text-link" href="${escapeHtml(withBase("../", nextProject.detailPage))}">Open next case study</a>
-            </div>
-          </article>
-        </aside>
-      </div>
-    </section>
-  </main>
-  ${renderFooter("../", "project")}
-  <script src="../scripts/site.js"></script>
-</body>
-</html>`;
-}
-
-function renderHomePage(content) {
-  const featuredProjects = content.projects.filter((project) => project.status === "published" && project.featured);
-  const publishedProjects = content.projects.filter((project) => project.status === "published");
-  const publishedWriting = content.writing
-    .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")
-    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
-  const latestGrid = publishedWriting
-    .filter((entry) => entry.type === "grid")
-    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))[0];
-  const certifications = content.certifications || [];
-  const heroMetrics = [
-    { value: String(content.products.length), label: "Deployed Products" },
-    { value: String(certifications.length), label: "Anthropic Certifications" },
-    { value: `${publishedProjects.length}+`, label: "Technical Projects" },
-    { value: "2+", label: "Years Building" }
-  ];
-  const operatingPrinciple = {
-    acronym: "LENS",
-    copy: "Look closely, extract what matters, narrow the noise, ship what works."
-  };
-  const technicalOverview = [
-    {
-      icon: "🧠",
-      title: "AI Retrieval & Research Systems",
-      copy: "Grounded knowledge flows, financial research pipelines, and context-first assistants.",
-      tags: ["RAG", "Knowledge Workflows", "OpenAI API", "LangChain"]
-    },
-    {
-      icon: "🔁",
-      title: "Automation & Operations",
-      copy: "Business processes rebuilt into reliable multi-step systems with reporting, retries, and clear outputs.",
-      tags: ["n8n", "Zapier", "REST APIs", "Webhooks"]
-    },
-    {
-      icon: "⛓",
-      title: "Blockchain & Signal Infrastructure",
-      copy: "Monitoring, filtering, and analysis across fast-moving ecosystems where timing and relevance matter.",
-      tags: ["Multi-Chain", "Telegram", "Smart Contracts", "Signal Capture"]
-    },
-    {
-      icon: "📈",
-      title: "Data Science & Quantitative Models",
-      copy: "Applied machine learning and financial modeling work shaped around real screening and decision tasks.",
-      tags: ["Python", "TensorFlow", "Machine Learning", "Forecasting"]
-    }
-  ];
-  const contactItems = [
-    {
-      icon: "✉",
-      label: "Email",
-      value: "oladokunpelumi07@gmail.com",
-      href: "mailto:oladokunpelumi07@gmail.com"
-    },
-    {
-      icon: "💼",
-      label: "LinkedIn",
-      value: "oladokun-pelumi-a168aa201",
-      href: "https://linkedin.com/in/oladokun-pelumi-a168aa201",
-      external: true
-    },
-    {
-      icon: "𝕏",
-      label: "Twitter / X",
-      value: "@pelumioladokun_",
-      href: "https://x.com/pelumioladokun_",
-      external: true
-    },
-    {
-      icon: "✍",
-      label: "Substack",
-      value: "@pelumioladokun",
-      href: "https://substack.com/@pelumioladokun",
-      external: true
-    }
-  ];
-  const description = "Portfolio website for Pelumi Oladokun featuring AI automation work, shipped products, selected case studies, and writing.";
-
-  return `<!DOCTYPE html>
-<html lang="en" data-base="" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
-  ${renderSeo({
-    title: "Pelumi Oladokun | AI Automation Developer",
-    description,
-    pagePath: "index.html"
-  })}
-  ${renderThemeBootstrapScript()}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/site.css">
-</head>
-<body>
-  <div class="noise-layer"></div>
-  ${renderNav("", "home")}
-  <header class="hero" id="top">
-    <div class="hero-orb hero-orb-a"></div>
-    <div class="hero-orb hero-orb-b"></div>
-    <div class="page-shell">
-      <div class="hero-copy hero-copy-legacy reveal">
-        <div class="eyebrow-pill">
-          <span class="status-dot"></span>
-          Available for opportunities
-        </div>
-        <h1 class="hero-name"><span>Pelumi</span> <strong>Oladokun.</strong></h1>
-        <p class="hero-kicker">AI Automation Developer &amp; Systems Architect</p>
-        <p class="hero-text">
-          I build intelligent systems, deploy real products, and turn technical complexity into working outputs people can actually use.
-        </p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#projects">See My Work</a>
-          <a class="button button-secondary" href="#contact">Get in Touch</a>
-        </div>
-        <div class="hero-divider" aria-hidden="true"></div>
-        <div class="hero-metrics hero-metrics-legacy">
-          ${heroMetrics.map((item) => `
-            <article>
-              <strong>${escapeHtml(item.value)}</strong>
-              <span>${escapeHtml(item.label)}</span>
-            </article>
-          `).join("")}
-        </div>
-      </div>
-    </div>
-  </header>
-  <main>
-    <section class="section page-shell" id="about">
-      <div class="section-heading reveal">
-        <span class="section-tag">About</span>
-        <h2>Builder. Thinker. Operator.</h2>
-        <p>I care about how work gets framed, how decisions get made, and whether the final system can survive beyond a polished first impression.</p>
-      </div>
-      <div class="editorial-split">
-        <article class="story-card reveal">
-          <p>I did not wait for a classroom to teach me how to build.</p>
-          <p>While studying Agricultural Economics at FUNAAB, I was already teaching myself how systems work, how interfaces shape behavior, and how to move from curiosity into practical execution.</p>
-          <p>That path made me comfortable working across both technical detail and business context. I like understanding the pressure underneath the request, not just the request itself.</p>
-          <p>My edge is being able to listen to a messy problem, reduce it to what actually matters, and turn that into something clear, usable, and operational.</p>
-          <p class="story-footnote">B.Sc. Agricultural Economics — FUNAAB, 2024 · Second Class Upper (2:1) · CGPA 4.26/5.0 · NYSC completed</p>
-        </article>
-        <div class="principles-stack reveal">
-          <p class="card-type">Operating Principle</p>
-          <article class="acronym-card lens-principle-card">
-            <div class="lens-wordmark" aria-hidden="true">
-              <span class="lens-letter">L</span>
-              <span class="lens-letter">E</span>
-              <span class="lens-letter lens-focus-letter">
-                N
-                <span class="lens-symbol">
-                  <span class="lens-ring"></span>
-                  <span class="lens-core"></span>
-                  <span class="lens-glint"></span>
-                </span>
-              </span>
-              <span class="lens-letter">S</span>
-            </div>
-            <p class="acronym-copy">${escapeHtml(operatingPrinciple.copy)}</p>
-          </article>
-        </div>
-      </div>
-    </section>
-    <section class="section page-shell" id="products">
-      <div class="section-heading reveal">
-        <span class="section-tag">Deployed Products</span>
-        <h2>Built &amp; Shipped. Live in the World.</h2>
-        <p>Independent products taken from concept and design all the way through launch, deployment, and real-world usage.</p>
-      </div>
-      <div class="product-stack">
-        ${content.products.map((product) => renderProductCard(product, "")).join("")}
-      </div>
-    </section>
-    <section class="section page-shell" id="projects">
-      <div class="section-heading reveal">
-        <span class="section-tag">Expertise</span>
-        <h2>Technical Projects. Certified Depth.</h2>
-        <p>Broad expertise built through real systems work and reinforced by formal Anthropic certification across AI fluency, teaching, and Claude API implementation.</p>
-      </div>
-      <div class="expertise-layout">
-        <div class="expertise-head reveal">
-          <p class="card-type">Technical Projects</p>
-          <h3>The problem spaces I build in most often.</h3>
-          <p>These lanes summarize the systems, research workflows, and decision tools I keep returning to in client work and independent builds, while the proof strip shows formal Anthropic depth behind the AI side of that work.</p>
-        </div>
-        <div class="tech-grid">
-          ${technicalOverview.map((item) => renderTechnicalKeywordCard(item)).join("")}
-        </div>
-        <div class="proof-strip reveal">
-          <div class="proof-strip-copy">
-            <p class="card-type">Certified Proof</p>
-            <h3>Anthropic-certified across fluency, teaching, foundations, and Claude API implementation.</h3>
-          </div>
-          <div class="proof-strip-grid">
-            ${certifications.map((certification) => renderCertificationProofCard(certification)).join("")}
-          </div>
-        </div>
-      </div>
-      <div class="case-study-cluster">
-      <div class="featured-layout">
-        <aside class="featured-intro reveal">
-          <p class="card-type">Case Studies</p>
-          <h3>Case studies that show the expertise in practice.</h3>
-          <p>The breakdowns below connect the overview above to real delivery work: the problem, the architecture, the operating logic, and the outcome.</p>
-          <div class="proof-stack">
-            <div>
-              <strong>AI Systems</strong>
-              <span>RAG, research flows, and grounded assistants</span>
-            </div>
-            <div>
-              <strong>Automation</strong>
-              <span>workflow orchestration, reporting, and operational delivery</span>
-            </div>
-            <div>
-              <strong>Data &amp; Quant</strong>
-              <span>screening models, analytics, and decision support</span>
-            </div>
-          </div>
-        </aside>
-        <div class="case-study-grid">
-          ${featuredProjects.map((project) => renderFeaturedProjectCard(project, "")).join("")}
-        </div>
-      </div>
-      </div>
-    </section>
-    <section class="section page-shell" id="writing">
-      <div class="section-heading reveal">
-        <span class="section-tag">Writing</span>
-        <h2>The Grid.</h2>
-        <p>The main writing on this site is <em>The Grid</em>, a fiction series built around AI, energy, automation, robotics, and automated finance.</p>
-      </div>
-      <div class="writing-spotlight">
-        <section class="grid-spotlight reveal">
-          <div class="grid-spotlight-shell">
-            <div class="grid-spotlight-top">
-              ${latestGrid && latestGrid.coverImage ? `
-                <div class="grid-spotlight-media">
-                  <img class="grid-spotlight-image" src="${escapeHtml(withBase("", assetPath(latestGrid.coverImage)))}" alt="${escapeHtml(latestGrid.coverAlt || "The Grid series cover")}" loading="lazy" decoding="async">
-                </div>
-              ` : ""}
-              <div class="grid-spotlight-copy-block">
-                <div class="grid-preview-head grid-spotlight-head">
-                  <div class="grid-preview-identity grid-spotlight-identity">
-                    <p class="card-type">Site Series</p>
-                    <h3>The Grid</h3>
-                  </div>
-                  <a class="button-ghost" href="writing/index.html">Open writing archive</a>
-                </div>
-                <p class="grid-preview-copy grid-spotlight-copy">A fiction series about infrastructure, power, and the systems that quietly run modern life. This archive is centered on the world, logic, and pressure systems inside <em>The Grid</em>.</p>
-              </div>
-            </div>
-            <div class="spotlight-story-wrap">
-              ${latestGrid
-                ? renderWritingSpotlightCard(latestGrid, "")
-                : `
-                  <article class="spotlight-story-card">
-                    <div class="spotlight-story-meta">
-                      <span>The Grid</span>
-                      <span>Coming soon</span>
-                    </div>
-                    <h3>New fiction is on the way.</h3>
-                    <p>The archive is being shaped into a longer-running series around systems, power, and the pressure beneath modern infrastructure.</p>
-                    <div class="spotlight-story-actions">
-                      <a class="button button-primary" href="writing/index.html">Open the archive</a>
-                    </div>
-                  </article>
-                `}
-            </div>
-          </div>
-        </section>
-      </div>
-    </section>
-    <section class="section page-shell" id="contact">
-      <div class="section-heading reveal">
-        <span class="section-tag">Contact</span>
-        <h2>Let&apos;s Build Something.</h2>
-        <p>If you&apos;re building a product, untangling an operational mess, or exploring an idea that needs sharp execution, let&apos;s talk.</p>
-      </div>
-      <div class="contact-grid">
-        <div class="contact-list reveal">
-          ${contactItems.map((item) => renderContactCard(item)).join("")}
-        </div>
-        <article class="availability-card reveal">
-          <p class="card-type">Start Here</p>
-          <h3>Bring the problem, the rough brief, or the idea that still needs shape.</h3>
-          <p>I like conversations that begin with a real constraint and end with a clear plan, working prototype, or shipped system. Based in Lagos, collaborating remotely across time zones.</p>
-          <a class="button button-primary" href="mailto:oladokunpelumi07@gmail.com">Send a Message</a>
-        </article>
-      </div>
-    </section>
-  </main>
-  ${renderFooter("", "home")}
-  <script src="scripts/site.js"></script>
-</body>
-</html>`;
-}
-
 function renderWritingArchivePage(content) {
-  const publishedWriting = content.writing
-    .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")
-    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate));
-  const description = "Writing archive for Pelumi Oladokun centered on The Grid, a site-native fiction series about AI, energy, automation, robotics, and automated finance.";
-
-  return `<!DOCTYPE html>
-<html lang="en" data-base="../" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0d1016" media="(prefers-color-scheme: dark)">
-  ${renderSeo({
-    title: "Writing | Pelumi Oladokun",
-    description,
-    pagePath: "writing/index.html"
-  })}
-  ${renderThemeBootstrapScript()}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles/site.css">
-</head>
-<body>
-  <div class="noise-layer"></div>
-  ${renderNav("../", "writing-archive")}
-  <main id="writing-page">
-    <section class="page-hero page-shell page-hero-compact">
-      <div class="page-intro page-intro-compact reveal">
-        <span class="section-tag">Writing Archive</span>
-        <h1>The Grid and site-native fiction.</h1>
-        <p>This archive is centered on <em>The Grid</em>, the fictional series exploring AI, infrastructure, power, robotics, and automated finance.</p>
+  const entries = publishedWriting(content);
+  const latest = entries[0];
+  const body = `
+  ${renderDateline(content)}
+  <main>
+    <section class="archive-hero">
+      <div class="container">
+        <p class="eyebrow reveal">Writing archive</p>
+        <h1 class="banner-title reveal"><em>Writing</em></h1>
+        <p class="archive-intro read-col reveal">The main writing project on this site is <em>The Grid</em>. Each episode is a self-contained story about people working inside infrastructure that quietly runs the modern world. Every story closes with a <em>Signal Decoder</em>, where the fiction traces itself back to the week it came from.</p>
       </div>
     </section>
-    <section class="section page-shell section-tight-top">
-      <div class="writing-archive-shell">
-        <div class="filters-panel reveal">
-          <p class="card-type">Filters</p>
-          <div class="filter-row" id="writing-filters">
-            ${renderWritingButtons(publishedWriting)}
-          </div>
+    <section class="series-feature">
+      <div class="container series-grid">
+        <div class="series-cover reveal">
+          ${latest?.coverImage ? `<img src="${escapeHtml(withBase("../", assetPath(latest.coverImage)))}" alt="${escapeHtml(latest.coverAlt || "The Grid series cover")}" loading="lazy" decoding="async">` : ""}
         </div>
-        <div class="archive-grid" id="writing-archive">
-          ${publishedWriting.map((entry) => renderArchiveCard(entry, "../")).join("")}
+        <div class="series-copy reveal">
+          <p class="eyebrow">The Grid</p>
+          <h2><em>Stories first. Receipts after.</em></h2>
+          <p>AI review tools, automated finance, robotics, energy, surveillance: the series treats infrastructure as something people live inside, not a trend deck they admire from outside.</p>
+          ${latest ? `<a class="text-link mono-link" href="${escapeHtml(latest.detailPage)}">Latest: ${escapeHtml(latest.title)} →</a>` : ""}
+        </div>
+      </div>
+    </section>
+    <section class="archive-list-section">
+      <div class="container">
+        <div class="filters-panel reveal">
+          <p class="eyebrow">Filter</p>
+          <div class="filter-row" id="writing-filters">${renderWritingButtons(entries)}</div>
+        </div>
+        <div class="episode-list" id="writing-archive">
+          ${entries.map((entry) => renderWritingArchiveEntry(entry, "../")).join("")}
         </div>
         <p class="empty-state" id="writing-empty-state" hidden>No published posts match this filter yet.</p>
       </div>
     </section>
-  </main>
-  ${renderFooter("../", "writing-archive")}
-  <script src="../scripts/site.js"></script>
-  <script src="../scripts/writing.js"></script>
+  </main>`;
+
+  return renderDocumentShell({
+    basePath: "../",
+    pageType: "writing",
+    title: "Writing — Pelumi Oladokun",
+    description: "The Grid, a fiction series about AI, automation, energy, robotics, and the infrastructure that quietly runs modern life.",
+    pagePath: "writing/index.html",
+    imagePath: latest?.coverImage,
+    body,
+    extraScripts: `<script src="../scripts/writing.js"></script>`
+  });
+}
+
+function renderArticlePage(entry, writingEntries) {
+  const siblings = writingEntries
+    .filter((item) => item.slug !== entry.slug)
+    .slice(0, 2);
+  const markdown = readSourceDocument(entry);
+  const bodyText = markdown ? markdownToText(markdown, entry.title) : "";
+  const description = buildDescription({ dek: entry.dek, excerpt: entry.excerpt, bodyText });
+
+  const articleBody = markdown
+    ? markdownToHtml(markdown, entry.title)
+    : `<p>${escapeHtml(entry.dek || entry.excerpt || "This writing entry is not available yet.")}</p>`;
+
+  const body = `
+  ${renderDateline({ site: { dateline: `${entrySeriesLabel(entry)} · ${formatDate(entry.publishDate)} · Pelumi Oladokun` } })}
+  <main>
+    <article class="article-layout container">
+      <div class="article-main">
+        <a class="breadcrumb" href="index.html">← Back to the archive</a>
+        <header class="article-header reveal">
+          <p class="eyebrow">${escapeHtml(entrySeriesLabel(entry))}</p>
+          <h1><em>${escapeHtml(entry.title)}</em></h1>
+          <p class="article-dek">${escapeHtml(entry.dek || entry.excerpt)}</p>
+        </header>
+        ${entry.coverImage ? `<figure class="article-cover reveal"><img src="${escapeHtml(withBase("../", assetPath(entry.coverImage)))}" alt="${escapeHtml(entry.coverAlt || `${entry.title} cover image`)}" loading="eager" decoding="async"></figure>` : ""}
+        <div class="article-prose">
+          ${articleBody}
+        </div>
+      </div>
+      <aside class="article-sidebar">
+        <div class="sidebar-block reveal">
+          <p class="sidebar-label">Article Notes</p>
+          <dl class="meta-list">
+            <div><dt>Published</dt><dd>${escapeHtml(formatDate(entry.publishDate))}</dd></div>
+            <div><dt>Series</dt><dd>${escapeHtml(entrySeriesLabel(entry))}</dd></div>
+            <div><dt>Tags</dt><dd>${escapeHtml((entry.tags || []).join(" · "))}</dd></div>
+          </dl>
+        </div>
+        <div class="sidebar-block reveal">
+          <p class="sidebar-label">More from the archive</p>
+          ${siblings.map((item) => `
+            <article class="sidebar-entry">
+              <strong>${escapeHtml(item.title)}</strong>
+              <p>${escapeHtml(item.excerpt)}</p>
+              <a class="text-link mono-link" href="${escapeHtml(withBase("../", item.detailPage))}">Read →</a>
+            </article>
+          `).join("")}
+        </div>
+      </aside>
+    </article>
+  </main>`;
+
+  return renderDocumentShell({
+    basePath: "../",
+    pageType: "article",
+    title: `${entry.title} | Pelumi Oladokun`,
+    description,
+    pagePath: entry.detailPage,
+    imagePath: entry.coverImage,
+    type: "article",
+    body
+  });
+}
+
+function renderProjectPreviewImages(project, basePath) {
+  if (!project.previewImages?.length) return "";
+
+  return `
+    <section class="case-section reveal">
+      <p class="eyebrow">Document previews</p>
+      <h2><em>Artifacts from the work.</em></h2>
+      <div class="preview-grid">
+        ${project.previewImages.map((image) => `
+          <figure class="preview-card">
+            <img src="${escapeHtml(withBase(basePath, assetPath(image.path)))}" alt="${escapeHtml(image.alt || image.label)}" loading="lazy" decoding="async">
+            <figcaption>${escapeHtml(image.label)}</figcaption>
+          </figure>
+        `).join("")}
+      </div>
+    </section>`;
+}
+
+function renderProjectDocuments(project, basePath) {
+  if (!project.documents?.length) return "";
+
+  const groups = Array.from(new Set(project.documents.map((document) => document.group)));
+
+  return `
+    <div class="sidebar-block reveal">
+      <p class="sidebar-label">Documents</p>
+      <div class="document-groups">
+        ${groups.map((group) => `
+          <div class="document-group">
+            <strong>${escapeHtml(group)}</strong>
+            ${project.documents.filter((document) => document.group === group).map((document) => `
+              <a href="${escapeHtml(withBase(basePath, document.path))}" target="_blank" rel="noreferrer">${escapeHtml(document.title)} →</a>
+            `).join("")}
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
+}
+
+function renderProjectPage(project, projects) {
+  const currentIndex = projects.findIndex((item) => item.slug === project.slug);
+  const nextProjects = projects
+    .filter((item) => item.slug !== project.slug)
+    .slice(currentIndex + 1)
+    .concat(projects.filter((item) => item.slug !== project.slug).slice(0, currentIndex + 1))
+    .slice(0, 2);
+  const basePath = "../../";
+  const description = buildDescription({ summary: project.summary, excerpt: project.outcome });
+  const hero = project.heroImage || project.coverImage;
+
+  const body = `
+  ${renderDateline({ site: { dateline: `${project.category} · Case Study · Pelumi Oladokun` } })}
+  <main>
+    <article class="case-layout container">
+      <aside class="case-sidebar">
+        <div class="sidebar-block reveal">
+          <a class="breadcrumb" href="../">← All work</a>
+          <p class="sidebar-label">Project</p>
+          <dl class="meta-list">
+            <div><dt>Category</dt><dd>${escapeHtml(project.category)}</dd></div>
+            <div><dt>Status</dt><dd>Published case study</dd></div>
+            <div><dt>Stack</dt><dd>${escapeHtml((project.stack || []).join(" · "))}</dd></div>
+          </dl>
+        </div>
+        ${renderProjectDocuments(project, basePath)}
+        <div class="sidebar-block reveal">
+          <p class="sidebar-label">Links</p>
+          <div class="sidebar-links">
+            ${(project.links || []).map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label)} →</a>`).join("") || "<p>No external links available yet.</p>"}
+            ${project.videoUrl ? `<a href="${escapeHtml(project.videoUrl)}" target="_blank" rel="noreferrer">Video walkthrough →</a>` : ""}
+          </div>
+        </div>
+      </aside>
+      <div class="case-main">
+        <header class="case-header reveal">
+          <p class="eyebrow">${escapeHtml(project.category)}</p>
+          <h1><em>${escapeHtml(project.title)}</em></h1>
+          <p class="case-subtitle">${escapeHtml(project.summary)}</p>
+        </header>
+        ${hero ? `<figure class="case-hero reveal"><img src="${escapeHtml(withBase(basePath, assetPath(hero)))}" alt="${escapeHtml(`${project.title} project visual`)}" loading="eager" decoding="async"></figure>` : ""}
+        ${project.headlineStrip ? `<div class="headline-strip reveal">${escapeHtml(project.headlineStrip)}</div>` : ""}
+        <section class="case-section reveal">
+          <p class="eyebrow">The brief</p>
+          <h2><em>What needed to be solved.</em></h2>
+          ${(project.problem || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+        </section>
+        <section class="case-section reveal">
+          <p class="eyebrow">The constraint</p>
+          <h2><em>What made it interesting.</em></h2>
+          ${(project.approach || []).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
+        </section>
+        <section class="case-section reveal">
+          <p class="eyebrow">The build</p>
+          <h2><em>What was assembled.</em></h2>
+          ${(project.buildDetails || []).map((detail) => `<p>${escapeHtml(detail)}</p>`).join("")}
+        </section>
+        <section class="case-section reveal">
+          <p class="eyebrow">The result</p>
+          <h2><em>What changed after it ran.</em></h2>
+          ${(project.results || []).map((detail) => `<p>${escapeHtml(detail)}</p>`).join("")}
+        </section>
+        ${renderProjectPreviewImages(project, basePath)}
+        <section class="case-section reveal">
+          <p class="eyebrow">Stack</p>
+          <div class="entry-tags stack-line">${(project.stack || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("<span>·</span>")}</div>
+        </section>
+        <section class="case-section read-next reveal">
+          <p class="eyebrow">Read next</p>
+          ${nextProjects.map((item) => renderSelectedWorkEntry(item, basePath)).join("")}
+        </section>
+      </div>
+    </article>
+  </main>`;
+
+  return renderDocumentShell({
+    basePath,
+    pageType: "project",
+    title: `${project.title} | Pelumi Oladokun`,
+    description,
+    pagePath: projectRoute(project),
+    imagePath: hero,
+    type: "article",
+    body
+  });
+}
+
+function renderWorkIndexPage(content) {
+  const projects = publishedProjects(content);
+  const body = `
+  ${renderDateline(content)}
+  <main>
+    <section class="archive-hero">
+      <div class="container">
+        <p class="eyebrow reveal">Work archive</p>
+        <h1 class="banner-title reveal"><em>Work</em></h1>
+        <p class="archive-intro read-col reveal">Products, systems, data work, and case studies. The homepage shows only three; this page keeps the rest available for inspection.</p>
+      </div>
+    </section>
+    <section class="work-index">
+      <div class="container selected-work-list">
+        ${projects.map((project) => renderSelectedWorkEntry(project, "../")).join("")}
+      </div>
+    </section>
+  </main>`;
+
+  return renderDocumentShell({
+    basePath: "../",
+    pageType: "work",
+    title: "Work | Pelumi Oladokun",
+    description: "Selected products, systems, data work, and technical case studies by Pelumi Oladokun.",
+    pagePath: "work/index.html",
+    body
+  });
+}
+
+function renderRedirectPage(targetHref, title) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="refresh" content="0; url=${escapeHtml(targetHref)}">
+  <title>${escapeHtml(title)}</title>
+  <link rel="canonical" href="${escapeHtml(toAbsoluteUrl(targetHref.replace(/^\.\.\//, "")))}">
+</head>
+<body>
+  <p>This page moved to <a href="${escapeHtml(targetHref)}">${escapeHtml(targetHref)}</a>.</p>
 </body>
 </html>`;
 }
@@ -1138,22 +859,27 @@ function buildSite() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
 
-  copyFile("styles/site.css", "styles/site.css");
-  copyFile("scripts/site.js", "scripts/site.js");
-  copyFile("scripts/writing.js", "scripts/writing.js");
-  collectDeployAssets(content).forEach((asset) => copyFile(asset, asset));
+  copyFile("styles/site.css");
+  copyFile("scripts/site.js");
+  copyFile("scripts/writing.js");
+  copyFile("assets/hero/pelumi-paper-cutout.webp");
+  collectDeployAssets(content).forEach((asset) => copyFile(asset));
 
   writeFile("index.html", renderHomePage(content));
   writeFile("writing/index.html", renderWritingArchivePage(content));
+  writeFile("work/index.html", renderWorkIndexPage(content));
 
-  const writingEntries = content.writing.filter((entry) => entry.status === "published" && entry.type !== "substack-feature" && entry.detailPage);
+  const writingEntries = publishedWriting(content).filter((entry) => entry.detailPage);
   for (const entry of writingEntries) {
     writeFile(entry.detailPage, renderArticlePage(entry, writingEntries));
   }
 
-  const projects = content.projects.filter((project) => project.status === "published");
+  const projects = publishedProjects(content);
   for (const project of projects) {
-    writeFile(project.detailPage, renderProjectPage(project, projects));
+    writeFile(projectRoute(project), renderProjectPage(project, projects));
+    if (project.detailPage && project.detailPage !== projectRoute(project)) {
+      writeFile(project.detailPage, renderRedirectPage(`../${routeHref(projectRoute(project))}`, `${project.title} moved`));
+    }
   }
 }
 
