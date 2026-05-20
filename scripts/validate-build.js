@@ -56,7 +56,7 @@ assertFile("work/analytics-documentation-practice/index.html");
 assertFile("styles/site.css");
 assertFile("scripts/site.js");
 assertFile("scripts/writing.js");
-assertFile("assets/hero/pelumi-paper-cutout.png");
+assertFile("assets/hero/pelumi-paper-cutout.webp");
 
 (content.writing || [])
   .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")

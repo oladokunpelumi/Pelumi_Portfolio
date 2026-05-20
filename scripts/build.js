@@ -434,7 +434,7 @@ function renderHeroSection(content) {
           </nav>
         </div>
         <figure class="hero-portrait reveal">
-          <img src="assets/hero/pelumi-paper-cutout.png" alt="Pelumi Oladokun, AI builder and writer of The Grid" loading="eager" decoding="async" fetchpriority="high">
+          <img src="assets/hero/pelumi-paper-cutout.webp" alt="Pelumi Oladokun, AI builder and writer of The Grid" loading="eager" decoding="async" fetchpriority="high">
         </figure>
       </div>
     </section>`;
@@ -862,7 +862,7 @@ function buildSite() {
   copyFile("styles/site.css");
   copyFile("scripts/site.js");
   copyFile("scripts/writing.js");
-  copyFile("assets/hero/pelumi-paper-cutout.png");
+  copyFile("assets/hero/pelumi-paper-cutout.webp");
   collectDeployAssets(content).forEach((asset) => copyFile(asset));
 
   writeFile("index.html", renderHomePage(content));

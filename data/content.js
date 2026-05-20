@@ -417,7 +417,7 @@ module.exports = {
       detailPage: "writing/the-grid-the-spreadsheet-of-dreams.html",
       dek: "In Lagos, rising energy costs force a brutal question: what deserves the next unit of intelligence.",
       sourcePath: "writing/drafts/THE_GRID_002_2026-03-30.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
@@ -458,7 +458,7 @@ module.exports = {
       detailPage: "writing/the-grid-the-short-form.html",
       dek: "At a flooded border checkpoint, the future moves only when someone is willing to sign.",
       sourcePath: "writing/drafts/# THE GRID — Installment 004: \"The Short.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
@@ -473,7 +473,7 @@ module.exports = {
       detailPage: "writing/the-grid-zero.html",
       dek: "In Lagos, the economics of intelligence split in two and leave no obvious place to stand.",
       sourcePath: "writing/drafts/THE_GRID_005_2026-04-10.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
@@ -488,7 +488,7 @@ module.exports = {
       detailPage: "writing/the-grid-the-freeze-function.html",
       dek: "At the port in Apapa, one frozen payment exposes what programmable financial infrastructure was designed to do.",
       sourcePath: "writing/drafts/The_GRID_006_2026-04-13.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
@@ -503,7 +503,7 @@ module.exports = {
       detailPage: "writing/the-grid-the-plumber-has-a-day.html",
       dek: "From a trotro seat to Kantamanto, a systems builder recognizes that mechanism design has always been street-level infrastructure.",
       sourcePath: "writing/drafts/THE_GRID_007_2026-04-15.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
@@ -518,7 +518,7 @@ module.exports = {
       detailPage: "writing/the-grid-the-review.html",
       dek: "In Bay 12, the real deadline is not shipment day, but the moment someone chooses who owns the risk.",
       sourcePath: "writing/drafts/The_GRID_008_2026-04-17.md",
-      coverImage: "assets/covers/the-grid-series-cover.png",
+      coverImage: "assets/covers/the-grid-series-cover.webp",
       coverAlt: "The Grid series cover showing a figure facing a glowing network above the ocean at night."
     },
     {
