@@ -57,6 +57,7 @@ assertFile("styles/site.css");
 assertFile("scripts/site.js");
 assertFile("scripts/writing.js");
 assertFile("assets/hero/pelumi-paper-cutout.webp");
+assertIncludes("styles/site.css", ".episode-row[hidden]");
 
 (content.writing || [])
   .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")
@@ -88,6 +89,11 @@ assertFile("assets/hero/pelumi-paper-cutout.webp");
   });
 
 assertIncludes("index.html", "Currently in production");
+assertIncludes("index.html", "Portfolio / Remote / 2026");
+assertIncludes("index.html", "data-current-edition");
+assertIncludes("index.html", "Volume 3");
+assertIncludes("index.html", "dateline-location");
+assertIncludes("index.html", "Remote");
 assertIncludes("index.html", "hero-title-line-first");
 assertIncludes("index.html", "aria-label=\"Pelumi Oladokun\"");
 assertIncludes("index.html", "href=\"#grid\"");
@@ -116,6 +122,7 @@ assertIncludes("writing/the-grid-the-review.html", "Signal Decoder");
 
 assertNotIncludes("index.html", "hero-mark");
 assertNotIncludes("styles/site.css", "hero-mark");
+assertNotIncludes("index.html", "Volume I · Issue 14 · May 2026 · Lagos");
 
 if (failures.length) {
   console.error("Build validation failed:");

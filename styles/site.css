@@ -297,6 +297,32 @@ html[data-theme="dark"] .theme-toggle-icon {
   text-align: center;
 }
 
+.dateline-edition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  min-height: 3.15rem;
+  text-transform: none;
+}
+
+.dateline-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.dateline-icon {
+  display: block;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* ─── Hero Section ─── */
 
 .hero-section {
@@ -778,6 +804,10 @@ html[data-theme="dark"] .theme-toggle-icon {
   grid-template-columns: 5.5rem minmax(0, 1fr) auto;
   gap: 1.5rem;
   align-items: start;
+}
+
+.episode-row[hidden] {
+  display: none;
 }
 
 .episode-number {
@@ -1266,6 +1296,12 @@ html[data-theme="dark"] .theme-toggle-icon {
 
   .hero-meta {
     gap: 0.55rem;
+  }
+
+  .dateline-edition {
+    gap: 0.45rem;
+    padding-inline: 0.75rem;
+    font-size: 0.68rem;
   }
 
   .lead-section,

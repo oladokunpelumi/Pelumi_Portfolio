@@ -141,9 +141,35 @@
     });
   }
 
+  function ordinalDay(day) {
+    const suffix = day % 100 >= 11 && day % 100 <= 13
+      ? "th"
+      : { 1: "st", 2: "nd", 3: "rd" }[day % 10] || "th";
+    return `${day}${suffix}`;
+  }
+
+  function localIsoDate(date) {
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
+  function initEditionDateline() {
+    const issue = document.querySelector("[data-current-issue]");
+    if (!issue) return;
+
+    const now = new Date();
+    const monthYear = now.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    issue.textContent = `Issue ${ordinalDay(now.getDate())} · ${monthYear}`;
+    issue.setAttribute("datetime", localIsoDate(now));
+  }
+
   window.PortfolioSite = { applyReveal };
 
   initTheme();
   initNav();
+  initEditionDateline();
   applyReveal();
 })();
