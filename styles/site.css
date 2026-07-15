@@ -806,6 +806,10 @@ html[data-theme="dark"] .theme-toggle-icon {
   align-items: start;
 }
 
+.episode-row[hidden] {
+  display: none;
+}
+
 .episode-number {
   color: var(--accent);
   font-family: var(--font-display);

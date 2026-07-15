@@ -572,6 +572,19 @@ module.exports = {
       status: "queued",
       tags: ["Energy", "Automation", "AI"],
       detailPage: "writing/the-grid-queued-energy-markets.html"
+    },
+    {
+      slug: "the-second-map-inside-a-remote-job",
+      title: "The Second Map Inside a Remote Job",
+      type: "essay",
+      series: "Essays",
+      excerpt: "What 24,080 listings revealed about the hiring boundaries hidden inside remote job labels.",
+      publishDate: "2026-07-15",
+      status: "published",
+      tags: ["Career Systems", "Remote Work", "Nigeria"],
+      detailPage: "writing/the-second-map-inside-a-remote-job.html",
+      dek: "From Lagos, every remote listing carries a second map: the places where the employer can actually hire.",
+      sourcePath: "writing/drafts/the-second-map-inside-a-remote-job-2026-07-15.md"
     }
   ]
 };

@@ -57,6 +57,7 @@ assertFile("styles/site.css");
 assertFile("scripts/site.js");
 assertFile("scripts/writing.js");
 assertFile("assets/hero/pelumi-paper-cutout.webp");
+assertIncludes("styles/site.css", ".episode-row[hidden]");
 
 (content.writing || [])
   .filter((entry) => entry.status === "published" && entry.type !== "substack-feature")

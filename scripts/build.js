@@ -579,9 +579,12 @@ function renderHomePage(content) {
 }
 
 function renderWritingArchiveEntry(entry, basePath) {
+  const archiveLabel = entry.seriesLabel
+    || (entry.type === "grid" ? entry.title.match(/Episode\s+(\d+)/)?.[1] || "Grid" : null)
+    || (entry.type === "essay" ? "Essay" : entry.series || "Note");
   return `
     <article class="episode-row reveal" data-entry-card data-series="${escapeHtml(entry.series)}" data-tags="${escapeHtml((entry.tags || []).join("|"))}">
-      <div class="episode-number">${escapeHtml(entry.seriesLabel || entry.title.match(/Episode\s+(\d+)/)?.[1] || "Grid")}</div>
+      <div class="episode-number">${escapeHtml(archiveLabel)}</div>
       <div class="episode-main">
         <p class="episode-meta">${escapeHtml(formatDate(entry.publishDate, { short: true }))} · ${escapeHtml((entry.tags || []).slice(0, 2).join(" · "))}</p>
         <h3><a href="${escapeHtml(withBase(basePath, entry.detailPage))}"><em>${escapeHtml(entry.title)}</em></a></h3>
@@ -592,11 +595,16 @@ function renderWritingArchiveEntry(entry, basePath) {
 }
 
 function renderWritingButtons(entries) {
+  const series = Array.from(new Set(entries.map((entry) => entry.series).filter(Boolean)))
+    .sort((a, b) => {
+      const priority = { "The Grid": 0, Essays: 1 };
+      return (priority[a] ?? 2) - (priority[b] ?? 2) || a.localeCompare(b);
+    });
   const tags = Array.from(new Set(entries.flatMap((entry) => entry.tags || [])));
   const buttons = [
     { key: "all", label: "All" },
-    { key: "The Grid", label: "The Grid" },
-    ...tags.map((tag) => ({ key: tag, label: tag }))
+    ...series.map((name) => ({ key: name, label: name })),
+    ...tags.filter((tag) => !series.includes(tag)).map((tag) => ({ key: tag, label: tag }))
   ];
 
   return buttons.map((button, index) => `
@@ -606,7 +614,7 @@ function renderWritingButtons(entries) {
 
 function renderWritingArchivePage(content) {
   const entries = publishedWriting(content);
-  const latest = entries[0];
+  const latestGrid = latestGridEntry(content);
   const body = `
   ${renderDateline(content)}
   <main>
@@ -614,19 +622,19 @@ function renderWritingArchivePage(content) {
       <div class="container">
         <p class="eyebrow reveal">Writing archive</p>
         <h1 class="banner-title reveal"><em>Writing</em></h1>
-        <p class="archive-intro read-col reveal">The main writing project on this site is <em>The Grid</em>. Each episode is a self-contained story about people working inside infrastructure that quietly runs the modern world. Every story closes with a <em>Signal Decoder</em>, where the fiction traces itself back to the week it came from.</p>
+        <p class="archive-intro read-col reveal"><em>The Grid</em> is the spine of this archive: fiction about people living inside the infrastructure that runs modern life. Essays and field notes sit beside it, showing the systems, builds, and evidence behind the daytime work.</p>
       </div>
     </section>
     <section class="series-feature">
       <div class="container series-grid">
         <div class="series-cover reveal">
-          ${latest?.coverImage ? `<img src="${escapeHtml(withBase("../", assetPath(latest.coverImage)))}" alt="${escapeHtml(latest.coverAlt || "The Grid series cover")}" loading="lazy" decoding="async">` : ""}
+          ${latestGrid?.coverImage ? `<img src="${escapeHtml(withBase("../", assetPath(latestGrid.coverImage)))}" alt="${escapeHtml(latestGrid.coverAlt || "The Grid series cover")}" loading="lazy" decoding="async">` : ""}
         </div>
         <div class="series-copy reveal">
           <p class="eyebrow">The Grid</p>
           <h2><em>Stories first. Receipts after.</em></h2>
           <p>AI review tools, automated finance, robotics, energy, surveillance: the series treats infrastructure as something people live inside, not a trend deck they admire from outside.</p>
-          ${latest ? `<a class="text-link mono-link" href="${escapeHtml(latest.detailPage)}">Latest: ${escapeHtml(latest.title)} →</a>` : ""}
+          ${latestGrid ? `<a class="text-link mono-link" href="${escapeHtml(latestGrid.detailPage)}">Latest: ${escapeHtml(latestGrid.title)} →</a>` : ""}
         </div>
       </div>
     </section>
@@ -648,9 +656,9 @@ function renderWritingArchivePage(content) {
     basePath: "../",
     pageType: "writing",
     title: "Writing — Pelumi Oladokun",
-    description: "The Grid, a fiction series about AI, automation, energy, robotics, and the infrastructure that quietly runs modern life.",
+    description: "The Grid fiction series, essays, and field notes about AI, automation, products, and the infrastructure behind the work.",
     pagePath: "writing/index.html",
-    imagePath: latest?.coverImage,
+    imagePath: latestGrid?.coverImage,
     body,
     extraScripts: `<script src="../scripts/writing.js"></script>`
   });

@@ -1,6 +1,6 @@
-# Fiction Draft Uploads
+# Writing Draft Uploads
 
-Drop your fiction draft files here and I can fit them into the website for you.
+Drop fiction or essay draft files here and I can fit them into the website for you.
 
 Best file types:
 - `.docx`
@@ -9,7 +9,7 @@ Best file types:
 
 What to include in the file:
 - Title
-- Series name if it belongs to `The Grid`
+- Series name: `The Grid` for fiction or `Essays` for nonfiction
 - Publish date if you already know it
 - The full body text
 - Optional short excerpt or subtitle
@@ -17,6 +17,7 @@ What to include in the file:
 Recommended naming:
 - `the-grid-episode-03.docx`
 - `the-grid-episode-04.md`
+- `the-second-map-inside-a-remote-job.md`
 
 When you upload a draft here, I can:
 - add it to `data/content.js`
